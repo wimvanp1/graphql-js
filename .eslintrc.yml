@@ -259,7 +259,7 @@ rules:
   key-spacing: off
   keyword-spacing: off
   #line-comment-position: undecided
-  linebreak-style: error
+  linebreak-style: 0
   lines-around-comment: off
   lines-between-class-members: off
   max-depth: off
