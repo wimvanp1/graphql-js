@@ -3,7 +3,7 @@
  */
 
 import { describe, it } from 'mocha';
-import { parse } from '../language/parser';
+import { parse } from '../parser';
 
 describe('Interparameter Constraints Parser Tests', () => {
   it('Correctly parses a schema without interparameter constraints', async () => {
