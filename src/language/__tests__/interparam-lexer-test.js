@@ -4,8 +4,8 @@
 
 import { expect } from 'chai';
 import { describe, it } from 'mocha';
-import { Source } from '../language/source';
-import { createLexer, TokenKind } from '../language/lexer';
+import { Source } from '../source';
+import { createLexer, TokenKind } from '../lexer';
 
 describe('Interparameter Constraints Parser Tests', () => {
   it('Correctly creates a lexicon from a schema without interparameter constraints', async () => {
