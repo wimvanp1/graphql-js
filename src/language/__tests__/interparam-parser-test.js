@@ -10,7 +10,7 @@ describe('Interparameter Constraints Parser Tests', () => {
     const schema = `
       type User{
         id: String!,
-        name: String!
+        name: String! 
       }
     
       type Query {
@@ -21,7 +21,7 @@ describe('Interparameter Constraints Parser Tests', () => {
     parse(schema);
   });
 
-  it('Correctly parses a query with an empty set of interparameter constraints', async () => {
+  it('Correctly parses a query with one interparameter constraint', async () => {
     const schema = `
       type User{
         id: String!,
@@ -29,7 +29,28 @@ describe('Interparameter Constraints Parser Tests', () => {
       }
     
       type Query {
-        user(id: String, name: String){}: User
+        user(id: String, name: String){
+          id XOR name
+        }: User
+      }
+    `;
+
+    parse(schema);
+  });
+
+  it('Correctly parses a query with multiple interparameter constraints', async () => {
+    const schema = `
+      type User{
+        id: String!,
+        name: String!
+      }
+    
+      type Query {
+        user(id: String, name: String){
+          id XOR name
+          id AND name
+          id OR name
+        }: User
       }
     `;
 

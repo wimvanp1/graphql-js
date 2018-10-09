@@ -52,7 +52,7 @@ describe('Interparameter Constraints Parser Tests', () => {
   it('Correctly creates a lexicon from a query with an empty set of interparameter constraints', async () => {
     const schema = `
       type Query {
-        user(id: String, name: String){}: User
+        user(id: String, name: String)[[]]: User
       }
     `;
 
@@ -80,9 +80,13 @@ describe('Interparameter Constraints Parser Tests', () => {
       TokenKind.NAME,
       TokenKind.PAREN_R,
 
-      // {}: User
-      TokenKind.BRACE_L,
-      TokenKind.BRACE_R,
+      // [[]]
+      TokenKind.BRACKET_L,
+      TokenKind.BRACKET_L,
+      TokenKind.BRACKET_R,
+      TokenKind.BRACKET_R,
+
+      // : User
       TokenKind.COLON,
       TokenKind.NAME,
 
@@ -99,9 +103,9 @@ describe('Interparameter Constraints Parser Tests', () => {
   it('Correctly creates a lexicon from a query with a sample set of interparameter constraints', async () => {
     const schema = `
       type Query {
-        user(id: String, name: String){
+        user(id: String, name: String)[[
           id XOR name
-        }: User
+        ]]: User
       }
     `;
 
@@ -129,12 +133,14 @@ describe('Interparameter Constraints Parser Tests', () => {
       TokenKind.NAME,
       TokenKind.PAREN_R,
 
-      // { id XOR name }
-      TokenKind.BRACE_L,
+      // [[ id XOR name ]]
+      TokenKind.BRACKET_L,
+      TokenKind.BRACKET_L,
       TokenKind.NAME,
       TokenKind.NAME,
       TokenKind.NAME,
-      TokenKind.BRACE_R,
+      TokenKind.BRACKET_R,
+      TokenKind.BRACKET_R,
 
       // : User
       TokenKind.COLON,
