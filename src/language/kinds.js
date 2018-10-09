@@ -62,6 +62,9 @@ export const Kind = Object.freeze({
   ENUM_VALUE_DEFINITION: 'EnumValueDefinition',
   INPUT_OBJECT_TYPE_DEFINITION: 'InputObjectTypeDefinition',
 
+  // Constraints
+  CONSTRAINT_DEFINITION: 'ConstraintDefinition',
+
   // Directive Definitions
   DIRECTIVE_DEFINITION: 'DirectiveDefinition',
 

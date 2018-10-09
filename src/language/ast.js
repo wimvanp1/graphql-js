@@ -93,6 +93,7 @@ export type ASTNode =
   | DocumentNode
   | OperationDefinitionNode
   | VariableDefinitionNode
+  | ConstraintDefinitionNode
   | VariableNode
   | SelectionSetNode
   | FieldNode
@@ -141,6 +142,7 @@ export type ASTKindToNode = {|
   Document: DocumentNode,
   OperationDefinition: OperationDefinitionNode,
   VariableDefinition: VariableDefinitionNode,
+  ConstraintDefinition: ConstraintDefinitionNode,
   Variable: VariableNode,
   SelectionSet: SelectionSetNode,
   Field: FieldNode,
@@ -442,6 +444,7 @@ export type FieldDefinitionNode = {
   +description?: StringValueNode,
   +name: NameNode,
   +arguments?: $ReadOnlyArray<InputValueDefinitionNode>,
+  +constraints?: $ReadOnlyArray<ConstraintDefinitionNode>,
   +type: TypeNode,
   +directives?: $ReadOnlyArray<DirectiveNode>,
 };
@@ -454,6 +457,13 @@ export type InputValueDefinitionNode = {
   +type: TypeNode,
   +defaultValue?: ValueNode,
   +directives?: $ReadOnlyArray<DirectiveNode>,
+};
+
+export type ConstraintDefinitionNode = {
+  +kind: 'ConstraintDefinition',
+  +loc?: Location,
+  +name: NameNode,
+  +variables: $ReadOnlyArray<NameNode>,
 };
 
 export type InterfaceTypeDefinitionNode = {
