@@ -40,11 +40,16 @@ function fieldNode(name, type, loc) {
 }
 
 function fieldNodeWithArgs(name, type, args, loc) {
+  return fieldNodeWithConstraints(name, type, args, [], loc);
+}
+
+function fieldNodeWithConstraints(name, type, args, constr, loc) {
   return {
     kind: 'FieldDefinition',
     description: undefined,
     name,
     arguments: args,
+    constraints: constr,
     type,
     directives: [],
     loc,
