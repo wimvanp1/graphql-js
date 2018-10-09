@@ -24,6 +24,7 @@ import type {
   OperationDefinitionNode,
   OperationTypeNode,
   VariableDefinitionNode,
+  ConstraintDefinitionNode,
   SelectionSetNode,
   SelectionNode,
   FieldNode,
@@ -950,12 +951,14 @@ function parseFieldsDefinition(lexer: Lexer<*>): Array<FieldDefinitionNode> {
 /**
  * FieldDefinition :
  *   - Description? Name ArgumentsDefinition? : Type Directives[Const]?
+ *   - Description? Name ArgumentsDefinition ConstraintsDefinition : Type Directives[Const]?
  */
 function parseFieldDefinition(lexer: Lexer<*>): FieldDefinitionNode {
   const start = lexer.token;
   const description = parseDescription(lexer);
   const name = parseName(lexer);
   const args = parseArgumentDefs(lexer);
+  const constraints = parseConstraintsDefs(lexer);
   expect(lexer, TokenKind.COLON);
   const type = parseTypeReference(lexer);
   const directives = parseDirectives(lexer, true);
@@ -964,6 +967,7 @@ function parseFieldDefinition(lexer: Lexer<*>): FieldDefinitionNode {
     description,
     name,
     arguments: args,
+    constraints,
     type,
     directives,
     loc: loc(lexer, start),
@@ -978,6 +982,37 @@ function parseArgumentDefs(lexer: Lexer<*>): Array<InputValueDefinitionNode> {
     return [];
   }
   return many(lexer, TokenKind.PAREN_L, parseInputValueDef, TokenKind.PAREN_R);
+}
+
+/**
+ * ConstraintsDefinition : { ConstraintDefinition+ }
+ */
+function parseConstraintsDefs(
+  lexer: Lexer<*>,
+): Array<ConstraintDefinitionNode> {
+  // Check if the definition starts with a brace
+  if (!peek(lexer, TokenKind.BRACE_L)) {
+    return [];
+  }
+
+  return many(lexer, TokenKind.BRACE_L, parseConstraintDef, TokenKind.BRACE_R);
+}
+
+/**
+ * ConstraintDefinition : Argument1 LogicOperator Argument2
+ */
+function parseConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
+  const start = lexer.token;
+  const arg1 = parseName(lexer);
+  const constraintName = parseName(lexer);
+  const arg2 = parseName(lexer);
+
+  return {
+    kind: Kind.CONSTRAINT_DEFINITION,
+    name: constraintName,
+    variables: [arg1, arg2],
+    loc: loc(lexer, start),
+  };
 }
 
 /**
