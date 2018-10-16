@@ -36,6 +36,7 @@ import type {
   FieldNode,
   FragmentDefinitionNode,
   ValueNode,
+  ConstraintDefinitionNode,
 } from '../language/ast';
 import type { GraphQLSchema } from './schema';
 import type { MaybePromise } from '../jsutils/MaybePromise';
@@ -814,6 +815,7 @@ export type GraphQLFieldConfig<
 > = {|
   type: GraphQLOutputType,
   args?: GraphQLFieldConfigArgumentMap,
+  constraints?: GraphQLFieldConfigConstraints,
   resolve?: GraphQLFieldResolver<TSource, TContext, TArgs>,
   subscribe?: GraphQLFieldResolver<TSource, TContext, TArgs>,
   deprecationReason?: ?string,
@@ -830,6 +832,15 @@ export type GraphQLArgumentConfig = {|
   astNode?: ?InputValueDefinitionNode,
 |};
 
+export type GraphQLFieldConfigConstraints = Array<GraphQLConstraintConfig>;
+
+export type GraphQLConstraintConfig = {|
+  // type: GraphQLConstraintType,
+  name: string,
+  variables: Array<string>,
+  astNode?: ?ConstraintDefinitionNode,
+|};
+
 export type GraphQLFieldConfigMap<TSource, TContext> = ObjMap<
   GraphQLFieldConfig<TSource, TContext>,
 >;
@@ -843,6 +854,7 @@ export type GraphQLField<
   description: ?string,
   type: GraphQLOutputType,
   args: Array<GraphQLArgument>,
+  constraints?: Array<GraphQLConstraint>,
   resolve?: GraphQLFieldResolver<TSource, TContext, TArgs>,
   subscribe?: GraphQLFieldResolver<TSource, TContext, TArgs>,
   isDeprecated?: boolean,
@@ -865,6 +877,11 @@ export function isRequiredArgument(arg: GraphQLArgument): boolean %checks {
 export type GraphQLFieldMap<TSource, TContext> = ObjMap<
   GraphQLField<TSource, TContext>,
 >;
+
+export type GraphQLConstraint = {
+  name: string,
+  arguments: Array<GraphQLArgument>,
+};
 
 /**
  * Interface Type Definition

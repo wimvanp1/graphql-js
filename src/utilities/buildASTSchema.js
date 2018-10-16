@@ -39,6 +39,7 @@ import type {
   DirectiveDefinitionNode,
   StringValueNode,
   Location,
+  ConstraintDefinitionNode,
 } from '../language/ast';
 import { isTypeDefinitionNode } from '../language/predicates';
 
@@ -50,6 +51,7 @@ import type {
   GraphQLFieldConfig,
   GraphQLEnumValueConfig,
   GraphQLInputField,
+  GraphQLConstraintConfig,
 } from '../type/definition';
 
 import {
@@ -244,6 +246,12 @@ export class ASTDefinitionBuilder {
     );
   }
 
+  /**
+   * Builds the given type.
+   * Type is a custom defined type or a query, mutation or subscription type
+   * @param node
+   * @returns {GraphQLNamedType}
+   */
   buildType(node: NamedTypeNode | TypeDefinitionNode): GraphQLNamedType {
     const typeName = node.name.value;
     if (!this._cache[typeName]) {
@@ -294,6 +302,8 @@ export class ASTDefinitionBuilder {
       type: (this._buildWrappedType(field.type): any),
       description: getDescription(field, this._options),
       args: field.arguments && this._makeInputValues(field.arguments),
+      constraints:
+        field.constraints && this._makeConstraintsDef(field.constraints),
       deprecationReason: getDeprecationReason(field),
       astNode: field,
     };
@@ -309,6 +319,17 @@ export class ASTDefinitionBuilder {
       type,
       description: getDescription(value, this._options),
       defaultValue: valueFromAST(value.defaultValue, type),
+      astNode: value,
+    };
+  }
+
+  buildConstraint(value: ConstraintDefinitionNode): GraphQLConstraintConfig {
+    // TODO remove this
+    // console.log(value);
+
+    return {
+      name: value.name.value,
+      variables: value.variables.map<string>(variable => variable.value), // TODO make this
       astNode: value,
     };
   }
@@ -340,6 +361,12 @@ export class ASTDefinitionBuilder {
     }
   }
 
+  /**
+   * Used for object type definitions
+   * @param def
+   * @returns {GraphQLObjectType}
+   * @private
+   */
   _makeTypeDef(def: ObjectTypeDefinitionNode) {
     const interfaces: ?$ReadOnlyArray<NamedTypeNode> = def.interfaces;
     return new GraphQLObjectType({
@@ -373,6 +400,18 @@ export class ASTDefinitionBuilder {
       values,
       value => value.name.value,
       value => this.buildInputField(value),
+    );
+  }
+
+  _makeConstraintsDef(constraints: $ReadOnlyArray<ConstraintDefinitionNode>) {
+    if (constraints && constraints.length) {
+      // TODO remove this
+      // console.log('We have constraints!');
+      // console.log(constraints);
+    }
+
+    return constraints.map<GraphQLConstraintConfig>(constraint =>
+      this.buildConstraint(constraint),
     );
   }
 
