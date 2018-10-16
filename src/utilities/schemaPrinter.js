@@ -261,6 +261,7 @@ function printFields(options, type) {
         '  ' +
         f.name +
         printArgs(options, f.args, '  ') +
+        printConstraints(options, f.constraints, '  ') +
         ': ' +
         String(f.type) +
         printDeprecated(f),
@@ -292,6 +293,37 @@ function printArgs(options, args, indentation = '') {
     '\n' +
     indentation +
     ')'
+  );
+}
+
+function printConstraints(options, constraints, indentation = '') {
+  if (!constraints || constraints.length === 0) {
+    // TODO this first test should not be necessary
+    return '';
+  }
+
+  // TODO remove this
+  // console.log('---');
+  // console.log(constraints);
+  // console.log('---');
+
+  return (
+    '{\n' +
+    constraints
+      .map(
+        constraint =>
+          indentation +
+          '  ' +
+          constraint.variables[0] +
+          ' ' +
+          constraint.name +
+          ' ' +
+          constraint.variables[1],
+      )
+      .join('\n') +
+    '\n' +
+    indentation +
+    '}'
   );
 }
 
