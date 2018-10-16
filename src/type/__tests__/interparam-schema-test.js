@@ -12,7 +12,7 @@ import { expect } from 'chai';
 import { validateSchema } from '../validate';
 import { buildSchema } from '../../utilities/buildASTSchema';
 
-describe('Type System: accepts interparameter constraints', () => {
+describe('Type System', () => {
   it('accepts valid interparameter constraints', () => {
     const schema = buildSchema(`
       type Query {
@@ -32,6 +32,14 @@ describe('Type System: accepts interparameter constraints', () => {
         }: String
       }
     `);
-    expect(validateSchema(schema)).to.deep.equal([]);
+
+    // TODO change error message here
+    expect(validateSchema(schema)).to.deep.equal([
+      {
+        message:
+          'Input Object type SomeInputObject must define one or more fields.',
+        locations: [{ line: 6, column: 7 }, { line: 4, column: 9 }],
+      },
+    ]);
   });
 });
