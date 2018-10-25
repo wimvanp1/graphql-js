@@ -45,6 +45,11 @@ import type {
 import { isValidNameError } from '../utilities/assertValidName';
 import { isEqualType, isTypeSubTypeOf } from '../utilities/typeComparators';
 
+/*
+ * This file only validates the schema
+ * Spec: https://facebook.github.io/graphql/June2018/#sec-Type-System
+ */
+
 /**
  * Implements the "Type Validation" sub-sections of the specification's
  * "Type System" section.
@@ -56,14 +61,17 @@ export function validateSchema(
   schema: GraphQLSchema,
 ): $ReadOnlyArray<GraphQLError> {
   // First check to ensure the provided value is in fact a GraphQLSchema.
+  // The given schema has to be an instance of the GraphQLSchema class
   assertSchema(schema);
 
   // If this Schema has already been validated, return the previous results.
+  // After validation, this field will contain at least an empty array (instead of being undefined)
   if (schema.__validationErrors) {
     return schema.__validationErrors;
   }
 
   // Validate the schema, producing a list of errors.
+  // These errors are first collected in the SchemaValidationContext
   const context = new SchemaValidationContext(schema);
   validateRootTypes(context);
   validateDirectives(context);
@@ -87,6 +95,9 @@ export function assertValidSchema(schema: GraphQLSchema): void {
   }
 }
 
+/**
+ * This context is used to accumulate the errors in the schema
+ */
 class SchemaValidationContext {
   +_errors: Array<GraphQLError>;
   +schema: GraphQLSchema;
@@ -100,6 +111,7 @@ class SchemaValidationContext {
     message: string,
     nodes?: $ReadOnlyArray<?ASTNode> | ?ASTNode,
   ): void {
+    // filter(Boolean) only keeps values that are not falsy
     const _nodes = (Array.isArray(nodes) ? nodes : [nodes]).filter(Boolean);
     this.addError(new GraphQLError(message, _nodes));
   }
@@ -113,10 +125,17 @@ class SchemaValidationContext {
   }
 }
 
+/**
+ * This function only checks if the provided root types are Object Types, in the schema definition.
+ * As defined in the spec, the query type is the only root type that is required.
+ * Spec: 3.2.1
+ * @param context
+ */
 function validateRootTypes(context) {
   const schema = context.schema;
   const queryType = schema.getQueryType();
   if (!queryType) {
+    // It is required to define a query object type in the schema definition
     context.reportError(`Query root type must be provided.`, schema.astNode);
   } else if (!isObjectType(queryType)) {
     context.reportError(
@@ -161,6 +180,11 @@ function getOperationTypeNode(
   return type.astNode;
 }
 
+/**
+ * This function validates the definitions of the directives
+ * Spec 3.13
+ * @param context
+ */
 function validateDirectives(context: SchemaValidationContext): void {
   for (const directive of context.schema.getDirectives()) {
     // Ensure all directives are in fact GraphQL directives.
@@ -207,6 +231,11 @@ function validateDirectives(context: SchemaValidationContext): void {
   }
 }
 
+/**
+ * Checks if the name field of a given node is valid
+ * @param context
+ * @param node
+ */
 function validateName(
   context: SchemaValidationContext,
   node: { +name: string, +astNode: ?ASTNode },
@@ -223,8 +252,16 @@ function validateName(
   }
 }
 
+/**
+ * Goes over all definitions in the schema and validates them
+ * These definitions include: objects (types), interfaces, unions, enums, input objects
+ * Spec 3.6-3.10
+ * @param context
+ */
 function validateTypes(context: SchemaValidationContext): void {
   const typeMap = context.schema.getTypeMap();
+
+  // Every declared type is available as a field in the typeMap
   for (const type of objectValues(typeMap)) {
     // Ensure all provided types are in fact GraphQL type.
     if (!isNamedType(type)) {
@@ -236,6 +273,7 @@ function validateTypes(context: SchemaValidationContext): void {
     }
 
     // Ensure it is named correctly (excluding introspection types).
+    // Introspection names are always assumed to be valid
     if (!isIntrospectionType(type)) {
       validateName(context, type);
     }
@@ -262,10 +300,17 @@ function validateTypes(context: SchemaValidationContext): void {
   }
 }
 
+/**
+ * Validates the fields of an object type definition or an interface definition.
+ * Spec 3.6 (FieldsDefinition & FieldDefinition)
+ * @param context
+ * @param type
+ */
 function validateFields(
   context: SchemaValidationContext,
   type: GraphQLObjectType | GraphQLInterfaceType,
 ): void {
+  // The keys of the getFields are returned as an array
   const fields = objectValues(type.getFields());
 
   // Objects and Interfaces both must define one or more fields.
@@ -300,6 +345,8 @@ function validateFields(
     }
 
     // Ensure the arguments are valid
+    // An object is kept with the names of the arguments that have been encountered.
+    // Every argument is added with its name as key and true as value.
     const argNames = Object.create(null);
     for (const arg of field.args) {
       const argName = arg.name;
@@ -326,9 +373,38 @@ function validateFields(
         );
       }
     }
+
+    // Ensure the constraints are valid, if they are provided
+    if (field.constraints) {
+      for (const constraint of field.constraints) {
+        // TODO validate constraints more
+        // TODO validate that the constraint itself is valid
+        // console.log('\nContraint: ');
+        // console.log(constraint);
+
+        // Validate that the argument exists
+        for (const constraintVarName of constraint.variables) {
+          if (!argNames[constraintVarName]) {
+            context.reportError(
+              `${type.name}.${field.name}.${constraintVarName} ` +
+                `must be defined as argument to be used in a constraint.`,
+              constraint.astNode,
+            );
+          }
+        }
+      }
+    }
   }
 }
 
+/**
+ * Ensures that an object implements its defined interfaces.
+ * Throws an error if the extended type is not an interface
+ * or when an interface is implemented twice.
+ * Spec 3.6
+ * @param context
+ * @param object
+ */
 function validateObjectInterfaces(
   context: SchemaValidationContext,
   object: GraphQLObjectType,
@@ -356,11 +432,21 @@ function validateObjectInterfaces(
   }
 }
 
+/**
+ * Validates the implementation of one interface in the object.
+ * Throws an error if a field of the interface is not defined in the object.
+ * The defined field must have a type that is a subtype/equal to the type defined in the interface
+ * Spec 3.6
+ * @param context
+ * @param object
+ * @param iface
+ */
 function validateObjectImplementsInterface(
   context: SchemaValidationContext,
   object: GraphQLObjectType,
   iface: GraphQLInterfaceType,
 ): void {
+  // Get the fields of the object itself and its interface
   const objectFieldMap = object.getFields();
   const ifaceFieldMap = iface.getFields();
 
@@ -413,7 +499,7 @@ function validateObjectImplementsInterface(
 
       // Assert interface field arg type matches object field arg type.
       // (invariant)
-      // TODO: change to contravariant?
+      // TODO: GQL change to contravariant?
       if (!isEqualType(ifaceArg.type, objectArg.type)) {
         context.reportError(
           `Interface field argument ${iface.name}.${fieldName}(${argName}:) ` +
@@ -427,7 +513,7 @@ function validateObjectImplementsInterface(
         );
       }
 
-      // TODO: validate default values?
+      // TODO: GQL validate default values?
     }
 
     // Assert additional arguments must not be required.
@@ -449,6 +535,14 @@ function validateObjectImplementsInterface(
   }
 }
 
+/**
+ * Validates the definition of a union.
+ * A union should have at least one member and every member has to be of a different type.
+ * A last requirement of a union is that it only can include object types.
+ * Spec 3.8
+ * @param context
+ * @param union
+ */
 function validateUnionMembers(
   context: SchemaValidationContext,
   union: GraphQLUnionType,
@@ -483,6 +577,12 @@ function validateUnionMembers(
   }
 }
 
+/**
+ * Validates the enum definitions.
+ * An enum must define at least one value and each value must have a unique and valid name.
+ * @param context The error context
+ * @param enumType The current enum that is being validated
+ */
 function validateEnumValues(
   context: SchemaValidationContext,
   enumType: GraphQLEnumType,
@@ -496,6 +596,7 @@ function validateEnumValues(
     );
   }
 
+  // Go over all values to validate each value individually
   for (const enumValue of enumValues) {
     const valueName = enumValue.name;
 
@@ -519,6 +620,15 @@ function validateEnumValues(
   }
 }
 
+/**
+ * Validates the definition of the field of an input object type.
+ * This is a collection of "name: type" pairs.
+ * At least one field must be defined and their names must be unique.
+ * Furthermore, the type of each field must be an input type itself
+ * Spec 3.10
+ * @param context
+ * @param inputObj
+ */
 function validateInputFields(
   context: SchemaValidationContext,
   inputObj: GraphQLInputObjectType,
@@ -558,14 +668,22 @@ type SDLDefinedObject<T, K> = {
 function getAllNodes<T: ASTNode, K: ASTNode>(
   object: SDLDefinedObject<T, K>,
 ): $ReadOnlyArray<T | K> {
+  // Select the fields astNode and extensionASTNodes from object
   const { astNode, extensionASTNodes } = object;
   return astNode
     ? extensionASTNodes
-      ? [astNode].concat(extensionASTNodes)
-      : [astNode]
-    : extensionASTNodes || [];
+      ? [astNode].concat(extensionASTNodes) // Both astNode and extensionASTNodes are present
+      : [astNode] // Only astNode is present
+    : extensionASTNodes || []; // astNode is not present
 }
 
+/**
+ * Executes the given setter on each of the nodes of the given object.
+ * This getter should return the subnodes when one such node is given
+ * @param object
+ * @param getter
+ * @returns {Array}
+ */
 function getAllSubNodes<T: ASTNode, K: ASTNode, L: ASTNode>(
   object: SDLDefinedObject<T, K>,
   getter: (T | K) => ?(L | $ReadOnlyArray<L>),
@@ -573,6 +691,7 @@ function getAllSubNodes<T: ASTNode, K: ASTNode, L: ASTNode>(
   let result = [];
   for (const astNode of getAllNodes(object)) {
     if (astNode) {
+      // Use the provided function to return the subnodes
       const subNodes = getter(astNode);
       if (subNodes) {
         result = result.concat(subNodes);
@@ -605,6 +724,12 @@ function getFieldNode(
   return getAllFieldNodes(type, fieldName)[0];
 }
 
+/**
+ * Filters the fields of the given type (object) to only return fields with the given fieldName
+ * @param type Object where the fields have to be selected from
+ * @param fieldName The fieldname to be filtered upon
+ * @returns $ReadOnlyArray<FieldDefinitionNode>
+ */
 function getAllFieldNodes(
   type: GraphQLObjectType | GraphQLInterfaceType,
   fieldName: string,
@@ -630,6 +755,13 @@ function getFieldArgNode(
   return getAllFieldArgNodes(type, fieldName, argName)[0];
 }
 
+/**
+ * Returns all arguments with the given name in the given field
+ * @param type
+ * @param fieldName
+ * @param argName
+ * @returns {Array}
+ */
 function getAllFieldArgNodes(
   type: GraphQLObjectType | GraphQLInterfaceType,
   fieldName: string,
@@ -683,6 +815,13 @@ function getUnionMemberTypeNodes(
   );
 }
 
+/**
+ * Retrieves all enum values with the given name.
+ * It thus goes over all values of the enum and only keeps the one with the given name
+ * @param enumType
+ * @param valueName
+ * @returns {*}
+ */
 function getEnumValueNodes(
   enumType: GraphQLEnumType,
   valueName: string,
