@@ -197,7 +197,7 @@ export function buildASTSchema(
       ? (definitionBuilder.buildType(operationTypes.subscription): any)
       : null,
     types: typeDefs.map(node => definitionBuilder.buildType(node)),
-    directives,
+    directives, // Include declared the directives
     astNode: schemaDef,
     assumeValid: options && options.assumeValid,
     allowedLegacyNames: options && options.allowedLegacyNames,
@@ -325,6 +325,7 @@ export class ASTDefinitionBuilder {
 
   buildConstraint(value: ConstraintDefinitionNode): GraphQLConstraintConfig {
     // TODO remove this
+    // console.log('Building constraint');
     // console.log(value);
 
     return {

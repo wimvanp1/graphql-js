@@ -878,6 +878,7 @@ export type GraphQLFieldMap<TSource, TContext> = ObjMap<
   GraphQLField<TSource, TContext>,
 >;
 
+// TODO is this ever used?
 export type GraphQLConstraint = {
   name: string,
   arguments: Array<GraphQLArgument>,
