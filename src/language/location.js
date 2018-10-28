@@ -26,6 +26,7 @@ export function getLocation(source: Source, position: number): SourceLocation {
   let line = 1;
   let column = position + 1;
   let match;
+  // Executing the same regex on one var, makes it return consecutive matches
   while ((match = lineRegexp.exec(source.body)) && match.index < position) {
     line += 1;
     column = position + 1 - (match.index + match[0].length);

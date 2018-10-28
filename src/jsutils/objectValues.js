@@ -9,6 +9,10 @@
 
 import type { ObjMap } from './ObjMap';
 
+/**
+ * Returns the values of the object directly or it returns a lambda.
+ * This lambda goes over the keys of the given object and lists these keys in an array
+ */
 declare function objectValues<T>(obj: ObjMap<T>): Array<T>;
 
 /* eslint-disable no-redeclare */
