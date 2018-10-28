@@ -67,6 +67,10 @@ import type {
 
 import { Kind } from './kinds';
 import { DirectiveLocation } from './directiveLocation';
+import {
+  InterparameterConstraintOperator,
+  isInterparameterConstraintOperator,
+} from './interparameterConstraint';
 
 /**
  * Configuration options to control parser behavior
@@ -973,17 +977,59 @@ function parseConstraintsDefs(
 
 /**
  * ConstraintDefinition : Argument1 LogicOperator Argument2
+ *                      : (Argument1 LogicOperator Argument2)
+ * Each argument can be another constraint definition
  */
-function parseConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
+// TODO errors on the second parameter here, because we put previousConstraint in arg1
+// but arg1 is defined to be a NameNode, it should also be allowed to have a ConstraintDefNode in there
+// see sr/lang/ast.js --> line 466
+function parseConstraintDef(
+  lexer: Lexer<*>,
+  previousConstraint?: ?ConstraintDefinitionNode,
+): ConstraintDefinitionNode {
+  if (peek(lexer, TokenKind.PAREN_L)) {
+    // The constraint is wrapped in parenthesis
+    const result = any(
+      lexer,
+      TokenKind.PAREN_L,
+      parseConstraintDef,
+      TokenKind.PAREN_R,
+    );
+
+    if (result.length === 0) {
+      throw unexpected(lexer, lexer.lastToken);
+    }
+
+    return result[0];
+  }
+
   const start = lexer.token;
-  const arg1 = parseName(lexer);
-  const constraintName = parseName(lexer);
-  const arg2 = parseName(lexer);
+  const firstName = parseName(lexer);
+
+  let leftSide;
+  let constraintName;
+  let rightSide;
+
+  /* Allow nesting of interparameter constraints
+   * If we previously parsed a interparameter constraint and we now start with a logic operator
+   * then we know that we have a nested constraint.
+   * Eg: var1 THEN (var2 XOR var3)
+   */
+  if (isInterparameterConstraintOperator(firstName) && previousConstraint) {
+    leftSide = previousConstraint;
+    constraintName = firstName;
+    rightSide = parseName(lexer);
+  } else {
+    leftSide = firstName;
+    constraintName = parseInterparameterConstraint(lexer);
+    rightSide = parseName(lexer);
+  }
 
   return {
     kind: Kind.CONSTRAINT_DEFINITION,
     name: constraintName,
-    variables: [arg1, arg2],
+    leftSide,
+    rightSide,
     loc: loc(lexer, start),
   };
 }
@@ -1453,6 +1499,15 @@ function parseDirectiveLocation(lexer: Lexer<*>): NameNode {
   const start = lexer.token;
   const name = parseName(lexer);
   if (DirectiveLocation.hasOwnProperty(name.value)) {
+    return name;
+  }
+  throw unexpected(lexer, start);
+}
+
+function parseInterparameterConstraint(lexer: Lexer<*>): NameNode {
+  const start = lexer.token;
+  const name = parseName(lexer);
+  if (InterparameterConstraintOperator.hasOwnProperty(name.value)) {
     return name;
   }
   throw unexpected(lexer, start);

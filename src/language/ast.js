@@ -463,7 +463,8 @@ export type ConstraintDefinitionNode = {
   +kind: 'ConstraintDefinition',
   +loc?: Location,
   +name: NameNode,
-  +variables: $ReadOnlyArray<NameNode>,
+  +leftSide: NameNode | ConstraintDefinitionNode,
+  +rightSide: NameNode | ConstraintDefinitionNode,
 };
 
 export type InterfaceTypeDefinitionNode = {
