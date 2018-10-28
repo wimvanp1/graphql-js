@@ -124,7 +124,7 @@ export const QueryDocumentKeys = {
   EnumValueDefinition: ['description', 'name', 'directives'],
   InputObjectTypeDefinition: ['description', 'name', 'directives', 'fields'],
 
-  ConstraintDefinition: ['name', 'variables'],
+  ConstraintDefinition: ['name', 'leftSide', 'rightSide'],
 
   DirectiveDefinition: ['description', 'name', 'arguments', 'locations'],
 
