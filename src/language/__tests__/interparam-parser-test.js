@@ -9,7 +9,7 @@ import toJSONDeep from './toJSONDeep';
 import { Kind } from '../kinds';
 
 describe('Interparameter Constraints Parser Tests', () => {
-  it('Correctly creates an ast from a schema with one interparameter constraint', async () => {
+  it('Correctly parses a schema with one interparameter constraint', async () => {
     const schema = `
       type Query {
         user(id: String, name: String){
@@ -82,18 +82,16 @@ describe('Interparameter Constraints Parser Tests', () => {
                     loc: { end: 76, start: 73 },
                     value: 'XOR',
                   },
-                  variables: [
-                    {
-                      kind: Kind.NAME,
-                      loc: { end: 72, start: 70 },
-                      value: 'id',
-                    },
-                    {
-                      kind: Kind.NAME,
-                      loc: { end: 81, start: 77 },
-                      value: 'name',
-                    },
-                  ],
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 72, start: 70 },
+                    value: 'id',
+                  },
+                  rightSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 81, start: 77 },
+                    value: 'name',
+                  },
                 },
               ],
               description: undefined,
@@ -129,13 +127,13 @@ describe('Interparameter Constraints Parser Tests', () => {
     });
   });
 
-  it('Correctly creates an ast from a schema with multiple interparameter constraints', async () => {
+  it('Correctly parses a schema with multiple interparameter constraints', async () => {
     const schema = `
       type Query {
         user(id: String, name: String){
           id XOR name
-          id AND name
-          id OR name
+          id THEN name
+          id XOR name
         }: User
       }
     `;
@@ -144,7 +142,7 @@ describe('Interparameter Constraints Parser Tests', () => {
 
     expect(toJSONDeep(result)).to.deep.equal({
       kind: Kind.DOCUMENT,
-      loc: { start: 0, end: 153 },
+      loc: { start: 0, end: 155 },
       definitions: [
         {
           description: undefined,
@@ -204,66 +202,60 @@ describe('Interparameter Constraints Parser Tests', () => {
                     loc: { end: 76, start: 73 },
                     value: 'XOR',
                   },
-                  variables: [
-                    {
-                      kind: Kind.NAME,
-                      loc: { end: 72, start: 70 },
-                      value: 'id',
-                    },
-                    {
-                      kind: Kind.NAME,
-                      loc: { end: 81, start: 77 },
-                      value: 'name',
-                    },
-                  ],
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 72, start: 70 },
+                    value: 'id',
+                  },
+                  rightSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 81, start: 77 },
+                    value: 'name',
+                  },
                 },
                 {
                   kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 103, start: 92 },
+                  loc: { end: 104, start: 92 },
                   name: {
                     kind: Kind.NAME,
-                    loc: { end: 98, start: 95 },
-                    value: 'AND',
+                    loc: { end: 99, start: 95 },
+                    value: 'THEN',
                   },
-                  variables: [
-                    {
-                      kind: Kind.NAME,
-                      loc: { end: 94, start: 92 },
-                      value: 'id',
-                    },
-                    {
-                      kind: Kind.NAME,
-                      loc: { end: 103, start: 99 },
-                      value: 'name',
-                    },
-                  ],
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 94, start: 92 },
+                    value: 'id',
+                  },
+                  rightSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 104, start: 100 },
+                    value: 'name',
+                  },
                 },
                 {
                   kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 124, start: 114 },
+                  loc: { end: 126, start: 115 },
                   name: {
                     kind: Kind.NAME,
-                    loc: { end: 119, start: 117 },
-                    value: 'OR',
+                    loc: { end: 121, start: 118 },
+                    value: 'XOR',
                   },
-                  variables: [
-                    {
-                      kind: Kind.NAME,
-                      loc: { end: 116, start: 114 },
-                      value: 'id',
-                    },
-                    {
-                      kind: Kind.NAME,
-                      loc: { end: 124, start: 120 },
-                      value: 'name',
-                    },
-                  ],
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 117, start: 115 },
+                    value: 'id',
+                  },
+                  rightSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 126, start: 122 },
+                    value: 'name',
+                  },
                 },
               ],
               description: undefined,
               directives: [],
               kind: Kind.FIELD_DEFINITION,
-              loc: { end: 140, start: 28 },
+              loc: { end: 142, start: 28 },
               name: {
                 kind: Kind.NAME,
                 loc: { end: 32, start: 28 },
@@ -271,10 +263,10 @@ describe('Interparameter Constraints Parser Tests', () => {
               },
               type: {
                 kind: Kind.NAMED_TYPE,
-                loc: { end: 140, start: 136 },
+                loc: { end: 142, start: 138 },
                 name: {
                   kind: Kind.NAME,
-                  loc: { end: 140, start: 136 },
+                  loc: { end: 142, start: 138 },
                   value: 'User',
                 },
               },
@@ -282,7 +274,243 @@ describe('Interparameter Constraints Parser Tests', () => {
           ],
           interfaces: [],
           kind: Kind.OBJECT_TYPE_DEFINITION,
-          loc: { end: 148, start: 7 },
+          loc: { end: 150, start: 7 },
+          name: {
+            kind: Kind.NAME,
+            loc: { end: 17, start: 12 },
+            value: 'Query',
+          },
+        },
+      ],
+    });
+  });
+
+  it('Correctly parses a schema with one interparameter constraint in parenthesis', async () => {
+    const schema = `
+      type Query {
+        user(id: String, name: String){
+          (id XOR name)
+        }: User
+      }
+    `;
+
+    const result = parse(schema);
+
+    expect(toJSONDeep(result)).to.deep.equal({
+      kind: Kind.DOCUMENT,
+      loc: { start: 0, end: 112 },
+      definitions: [
+        {
+          description: undefined,
+          directives: [],
+          fields: [
+            {
+              arguments: [
+                {
+                  defaultValue: undefined,
+                  description: undefined,
+                  directives: [],
+                  kind: Kind.INPUT_VALUE_DEFINITION,
+                  loc: { end: 43, start: 33 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 35, start: 33 },
+                    value: 'id',
+                  },
+                  type: {
+                    kind: Kind.NAMED_TYPE,
+                    loc: { end: 43, start: 37 },
+                    name: {
+                      kind: Kind.NAME,
+                      loc: { end: 43, start: 37 },
+                      value: 'String',
+                    },
+                  },
+                },
+                {
+                  defaultValue: undefined,
+                  description: undefined,
+                  directives: [],
+                  kind: Kind.INPUT_VALUE_DEFINITION,
+                  loc: { end: 57, start: 45 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 49, start: 45 },
+                    value: 'name',
+                  },
+                  type: {
+                    kind: Kind.NAMED_TYPE,
+                    loc: { end: 57, start: 51 },
+                    name: {
+                      kind: Kind.NAME,
+                      loc: { end: 57, start: 51 },
+                      value: 'String',
+                    },
+                  },
+                },
+              ],
+              constraints: [
+                {
+                  kind: Kind.CONSTRAINT_DEFINITION,
+                  loc: { end: 82, start: 71 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 77, start: 74 },
+                    value: 'XOR',
+                  },
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 73, start: 71 },
+                    value: 'id',
+                  },
+                  rightSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 82, start: 78 },
+                    value: 'name',
+                  },
+                },
+              ],
+              description: undefined,
+              directives: [],
+              kind: Kind.FIELD_DEFINITION,
+              loc: { end: 99, start: 28 },
+              name: {
+                kind: Kind.NAME,
+                loc: { end: 32, start: 28 },
+                value: 'user',
+              },
+              type: {
+                kind: Kind.NAMED_TYPE,
+                loc: { end: 99, start: 95 },
+                name: {
+                  kind: Kind.NAME,
+                  loc: { end: 99, start: 95 },
+                  value: 'User',
+                },
+              },
+            },
+          ],
+          interfaces: [],
+          kind: Kind.OBJECT_TYPE_DEFINITION,
+          loc: { end: 107, start: 7 },
+          name: {
+            kind: Kind.NAME,
+            loc: { end: 17, start: 12 },
+            value: 'Query',
+          },
+        },
+      ],
+    });
+  });
+
+  it('Correctly parses a schema with a nest leftside interparameter constraint', async () => {
+    const schema = `
+      type Query {
+        user(id: String, name: String, phone: Int){
+          ((id XOR name) XOR phone)
+        }: User
+      }
+    `;
+
+    const result = parse(schema);
+
+    expect(toJSONDeep(result)).to.deep.equal({
+      kind: Kind.DOCUMENT,
+      loc: { start: 0, end: 112 },
+      definitions: [
+        {
+          description: undefined,
+          directives: [],
+          fields: [
+            {
+              arguments: [
+                {
+                  defaultValue: undefined,
+                  description: undefined,
+                  directives: [],
+                  kind: Kind.INPUT_VALUE_DEFINITION,
+                  loc: { end: 43, start: 33 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 35, start: 33 },
+                    value: 'id',
+                  },
+                  type: {
+                    kind: Kind.NAMED_TYPE,
+                    loc: { end: 43, start: 37 },
+                    name: {
+                      kind: Kind.NAME,
+                      loc: { end: 43, start: 37 },
+                      value: 'String',
+                    },
+                  },
+                },
+                {
+                  defaultValue: undefined,
+                  description: undefined,
+                  directives: [],
+                  kind: Kind.INPUT_VALUE_DEFINITION,
+                  loc: { end: 57, start: 45 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 49, start: 45 },
+                    value: 'name',
+                  },
+                  type: {
+                    kind: Kind.NAMED_TYPE,
+                    loc: { end: 57, start: 51 },
+                    name: {
+                      kind: Kind.NAME,
+                      loc: { end: 57, start: 51 },
+                      value: 'String',
+                    },
+                  },
+                },
+              ],
+              constraints: [
+                {
+                  kind: Kind.CONSTRAINT_DEFINITION,
+                  loc: { end: 82, start: 71 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 77, start: 74 },
+                    value: 'XOR',
+                  },
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 73, start: 71 },
+                    value: 'id',
+                  },
+                  rightSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 82, start: 78 },
+                    value: 'name',
+                  },
+                },
+              ],
+              description: undefined,
+              directives: [],
+              kind: Kind.FIELD_DEFINITION,
+              loc: { end: 99, start: 28 },
+              name: {
+                kind: Kind.NAME,
+                loc: { end: 32, start: 28 },
+                value: 'user',
+              },
+              type: {
+                kind: Kind.NAMED_TYPE,
+                loc: { end: 99, start: 95 },
+                name: {
+                  kind: Kind.NAME,
+                  loc: { end: 99, start: 95 },
+                  value: 'User',
+                },
+              },
+            },
+          ],
+          interfaces: [],
+          kind: Kind.OBJECT_TYPE_DEFINITION,
+          loc: { end: 107, start: 7 },
           name: {
             kind: Kind.NAME,
             loc: { end: 17, start: 12 },
