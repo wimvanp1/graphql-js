@@ -27,18 +27,68 @@ describe('Type System', () => {
   it('rejects invalid interparameter constraints', () => {
     const schema = buildSchema(`
       type Query {
-        field(id: ID, name: String){
+        field(name: String, name: String){ 
           unknown XOR name
         }: String
       }
     `);
 
-    // TODO change error message here
+    // The first line of the query is the empty line in the beginning of the string!
     expect(validateSchema(schema)).to.deep.equal([
       {
         message:
-          'Input Object type SomeInputObject must define one or more fields.',
-        locations: [{ line: 6, column: 7 }, { line: 4, column: 9 }],
+          'Query.field.unknown must be defined as argument to be used in a constraint.',
+        locations: [{ line: 4, column: 11 }],
+      },
+    ]);
+  });
+
+  it('accepts multiple valid interparameter constraints', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, name: String, phone: Int){
+          id XOR name
+          name THEN phone
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([]);
+  });
+
+  // TODO add additional test
+  /*
+  it('rejects duplicate interparameter constraints', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, name: String, phone: Int){
+          id XOR name
+          id XOR name
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([
+      {
+        message:
+          'Query.field.unknown must be defined as argument to be used in a constraint.',
+        locations: [{ line: 4, column: 11 }],
+      },
+    ]);
+  });
+  */
+
+  it('rejects nested invalid interparameter constraints', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, name: String, phone: Int){
+          ((id XOR unknown) XOR phone)
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([
+      {
+        message:
+          'Query.field.unknown must be defined as argument to be used in a constraint.',
+        locations: [{ line: 4, column: 11 }],
       },
     ]);
   });
