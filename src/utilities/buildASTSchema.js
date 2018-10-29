@@ -330,7 +330,14 @@ export class ASTDefinitionBuilder {
 
     return {
       name: value.name.value,
-      variables: value.variables.map<string>(variable => variable.value), // TODO make this
+      leftSide:
+        value.leftSide.kind === Kind.NAME
+          ? value.leftSide.value
+          : this.buildConstraint(value.leftSide),
+      rightSide:
+        value.rightSide.kind === Kind.NAME
+          ? value.rightSide.value
+          : this.buildConstraint(value.rightSide),
       astNode: value,
     };
   }
