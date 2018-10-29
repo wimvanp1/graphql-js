@@ -386,11 +386,11 @@ function validateFields(
         // console.log('\nContraint: ');
         // console.log(constraint);
 
-        // Validate that the argument exists
-        for (const constraintVarName of constraint.variables) {
-          if (!argNames[constraintVarName]) {
+        // Validate that the argument exists (if the constraint is a name)
+        for (const side of [constraint.leftSide, constraint.rightSide]) {
+          if (typeof side === 'string' && !argNames[side]) {
             context.reportError(
-              `${type.name}.${field.name}.${constraintVarName} ` +
+              `${type.name}.${field.name}.${side} ` +
                 `must be defined as argument to be used in a constraint.`,
               constraint.astNode,
             );
