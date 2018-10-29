@@ -837,7 +837,8 @@ export type GraphQLFieldConfigConstraints = Array<GraphQLConstraintConfig>;
 export type GraphQLConstraintConfig = {|
   // type: GraphQLConstraintType,
   name: string,
-  variables: Array<string>,
+  leftSide: string | GraphQLConstraintConfig,
+  rightSide: string | GraphQLConstraintConfig,
   astNode?: ?ConstraintDefinitionNode,
 |};
 
