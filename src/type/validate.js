@@ -379,6 +379,7 @@ function validateFields(
       for (const constraint of field.constraints) {
         // TODO validate constraints more
         // TODO validate that the constraint itself is valid
+        // TODO low priority: required argument w/ XOR constraint is not allowed
         // console.log('\nContraint: ');
         // console.log(constraint);
 
