@@ -75,8 +75,40 @@ describe('Type System', () => {
     ]);
   });
   */
+  it('accepts valid nested leftside interparameter constraints', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, name: String, phone: Int){
+          (id XOR name) XOR phone
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([]);
+  });
 
-  it('rejects nested invalid interparameter constraints', () => {
+  it('accepts valid nested rightside interparameter constraints', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, name: String, phone: Int){
+          id THEN (name XOR phone)
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([]);
+  });
+
+  it('accepts valid nested interparameter constraints on both sides', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, name: String, phone: Int, email: String){
+          (id XOR name) THEN (phone XOR email)
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([]);
+  });
+
+  it('rejects left nested invalid interparameter constraints', () => {
     const schema = buildSchema(`
       type Query {
         field(id: ID, name: String, phone: Int){
@@ -88,7 +120,24 @@ describe('Type System', () => {
       {
         message:
           'Query.field.unknown must be defined as argument to be used in a constraint.',
-        locations: [{ line: 4, column: 11 }],
+        locations: [{ line: 4, column: 13 }],
+      },
+    ]);
+  });
+
+  it('rejects right nested invalid interparameter constraints', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, name: String, phone: Int){
+          (id XOR (phone XOR unknown))
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([
+      {
+        message:
+          'Query.field.unknown must be defined as argument to be used in a constraint.',
+        locations: [{ line: 4, column: 12 }],
       },
     ]);
   });
