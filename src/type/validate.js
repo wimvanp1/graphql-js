@@ -383,11 +383,30 @@ function validateFields(
         // console.log(constraint);
 
         // Validate that the argument exists (if the constraint is a name)
-        for (const side of [constraint.leftSide, constraint.rightSide]) {
-          if (typeof side === 'string' && !argNames[side]) {
+        const toBeChecked = [constraint.leftSide, constraint.rightSide];
+        for (const side of toBeChecked) {
+          // If the side that is being examined is a string, then this should represent an argument
+          if (typeof side === 'string') {
+            if (!argNames[side]) {
+              context.reportError(
+                `${type.name}.${field.name}.${side} ` +
+                  `must be defined as argument to be used in a constraint.`,
+                constraint.astNode,
+              );
+            }
+          } else if (
+            typeof side === 'object' &&
+            side.hasOwnProperty('leftSide') &&
+            side.hasOwnProperty('rightSide')
+          ) {
+            // Otherwise, this side is a constraint itself and needs to be checked as well
+            toBeChecked.push(side.leftSide);
+            toBeChecked.push(side.rightSide);
+          } else {
+            // Another case is not allowed
             context.reportError(
               `${type.name}.${field.name}.${side} ` +
-                `must be defined as argument to be used in a constraint.`,
+                `must be a string or a constraint definition.`,
               constraint.astNode,
             );
           }
