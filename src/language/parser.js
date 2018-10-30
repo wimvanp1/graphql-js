@@ -1007,9 +1007,6 @@ function parseConstraintsDefs(
  *                      : (Argument1 LogicOperator Argument2)
  * Each argument can be another constraint definition
  */
-// TODO errors on the second parameter here, because we put previousConstraint in arg1
-// but arg1 is defined to be a NameNode, it should also be allowed to have a ConstraintDefNode in there
-// see sr/lang/ast.js --> line 466
 function parseConstraintDef(
   lexer: Lexer<*>,
   previousConstraint?: ?ConstraintDefinitionNode,
@@ -1027,7 +1024,9 @@ function parseConstraintDef(
       throw unexpected(lexer, lexer.lastToken);
     }
 
-    return result[0];
+    // Return the biggest possible constraint
+    // This is stored as last element of the list
+    return result[result.length - 1];
   }
 
   const start = lexer.token;
@@ -1036,6 +1035,7 @@ function parseConstraintDef(
   let leftSide;
   let constraintName;
   let rightSide;
+  let location;
 
   /* Allow nesting of interparameter constraints
    * If we previously parsed a interparameter constraint and we now start with a logic operator
@@ -1045,11 +1045,26 @@ function parseConstraintDef(
   if (isInterparameterConstraintOperator(firstName) && previousConstraint) {
     leftSide = previousConstraint;
     constraintName = firstName;
-    rightSide = parseName(lexer);
+    rightSide = parseNameOrInterparameterConstraint(lexer);
+
+    // Fix the location to include the first constraint as well
+    // If we would just use start, then the location would only start from the logical operator
+    const intermediateLocation = loc(lexer, start);
+    if (intermediateLocation !== undefined && leftSide.loc !== undefined) {
+      location = new Loc(
+        leftSide.loc.startToken,
+        intermediateLocation.endToken,
+        lexer.source,
+      );
+    } else {
+      // Fallback which should be unnecessary
+      location = intermediateLocation;
+    }
   } else {
     leftSide = firstName;
     constraintName = parseInterparameterConstraint(lexer);
-    rightSide = parseName(lexer);
+    rightSide = parseNameOrInterparameterConstraint(lexer);
+    location = loc(lexer, start);
   }
 
   return {
@@ -1057,8 +1072,22 @@ function parseConstraintDef(
     name: constraintName,
     leftSide,
     rightSide,
-    loc: loc(lexer, start),
+    loc: location,
   };
+}
+
+function parseNameOrInterparameterConstraint(
+  lexer: Lexer<*>,
+): NameNode | ConstraintDefinitionNode {
+  // We expect parenthesis around a new constraint
+  // So check if the next token is an opening parenthesis
+  if (peek(lexer, TokenKind.PAREN_L)) {
+    // There is no previous constraint because the constraint is between parenthesis
+    return parseConstraintDef(lexer);
+  }
+
+  // Other scenario: it should be a name
+  return parseName(lexer);
 }
 
 /**
@@ -1641,13 +1670,15 @@ function unexpected(lexer: Lexer<*>, atToken?: ?Token): GraphQLError {
 function any<T>(
   lexer: Lexer<*>,
   openKind: TokenKindEnum,
-  parseFn: (lexer: Lexer<*>) => T,
+  parseFn: (lexer: Lexer<*>, previousNode?: ?T) => T,
   closeKind: TokenKindEnum,
 ): Array<T> {
   expect(lexer, openKind);
   const nodes = [];
   while (!skip(lexer, closeKind)) {
-    nodes.push(parseFn(lexer));
+    nodes.push(
+      parseFn(lexer, nodes.length > 0 ? nodes[nodes.length - 1] : undefined),
+    );
   }
   return nodes;
 }
@@ -1661,13 +1692,13 @@ function any<T>(
 function many<T>(
   lexer: Lexer<*>,
   openKind: TokenKindEnum,
-  parseFn: (lexer: Lexer<*>) => T,
+  parseFn: (lexer: Lexer<*>, previousNode?: ?T) => T,
   closeKind: TokenKindEnum,
 ): Array<T> {
   expect(lexer, openKind);
   const nodes = [parseFn(lexer)];
   while (!skip(lexer, closeKind)) {
-    nodes.push(parseFn(lexer));
+    nodes.push(parseFn(lexer, nodes[nodes.length - 1]));
   }
   return nodes;
 }
