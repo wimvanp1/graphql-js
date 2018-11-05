@@ -879,10 +879,11 @@ export type GraphQLFieldMap<TSource, TContext> = ObjMap<
   GraphQLField<TSource, TContext>,
 >;
 
-// TODO is this ever used?
+// This is used when constructing the schema for query validation
 export type GraphQLConstraint = {
   name: string,
-  arguments: Array<GraphQLArgument>,
+  leftSide: string | GraphQLConstraint,
+  rightSide: string | GraphQLConstraint,
 };
 
 /**
