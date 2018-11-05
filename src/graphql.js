@@ -169,9 +169,9 @@ export function graphqlSync(
 
 function graphqlImpl(
   schema,
-  source,
-  rootValue,
-  contextValue,
+  source, // Query
+  rootValue, // Resolvers?
+  contextValue, // Additional properties used for the resolvers
   variableValues,
   operationName,
   fieldResolver,

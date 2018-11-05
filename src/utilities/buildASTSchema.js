@@ -324,10 +324,6 @@ export class ASTDefinitionBuilder {
   }
 
   buildConstraint(value: ConstraintDefinitionNode): GraphQLConstraintConfig {
-    // TODO remove this
-    // console.log('Building constraint');
-    // console.log(value);
-
     return {
       name: value.name.value,
       leftSide:
@@ -412,12 +408,6 @@ export class ASTDefinitionBuilder {
   }
 
   _makeConstraintsDef(constraints: $ReadOnlyArray<ConstraintDefinitionNode>) {
-    if (constraints && constraints.length) {
-      // TODO remove this
-      // console.log('We have constraints!');
-      // console.log(constraints);
-    }
-
     return constraints.map<GraphQLConstraintConfig>(constraint =>
       this.buildConstraint(constraint),
     );
