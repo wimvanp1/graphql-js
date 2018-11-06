@@ -161,6 +161,8 @@ export type {
   GraphQLScalarSerializer,
   GraphQLScalarValueParser,
   GraphQLScalarLiteralParser,
+  // Constraint definitions
+  GraphQLConstraint,
 } from './definition';
 
 export { validateSchema, assertValidSchema } from './validate';
