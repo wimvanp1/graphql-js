@@ -238,6 +238,7 @@ export class ValidationContext extends ASTValidationContext {
     return this._typeInfo.getParentInputType();
   }
 
+  // Returns the definition of the current field
   getFieldDef(): ?GraphQLField<*, *> {
     return this._typeInfo.getFieldDef();
   }
