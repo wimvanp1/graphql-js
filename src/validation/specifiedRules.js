@@ -87,6 +87,9 @@ import { OverlappingFieldsCanBeMerged } from './rules/OverlappingFieldsCanBeMerg
 // Spec Section: "Input Object Field Uniqueness"
 import { UniqueInputFieldNames } from './rules/UniqueInputFieldNames';
 
+// Interparameter imports
+import { NoInterparamConstraintViolations } from './rules/NoInterparamConstraintViolations';
+
 /**
  * This set includes all validation rules defined by the GraphQL spec.
  *
@@ -120,6 +123,8 @@ export const specifiedRules: $ReadOnlyArray<ValidationRule> = [
   VariablesInAllowedPosition,
   OverlappingFieldsCanBeMerged,
   UniqueInputFieldNames,
+  // Interparameter rules
+  NoInterparamConstraintViolations,
 ];
 
 import { LoneSchemaDefinition } from './rules/LoneSchemaDefinition';
