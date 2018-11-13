@@ -383,50 +383,32 @@ export const testSchema = new GraphQLSchema({
   ],
 });
 
-const InterparamQueryRoot = new GraphQLObjectType({
-  name: 'QueryRoot',
-  fields: () => ({
-    human: {
-      args: {
-        id: { type: GraphQLID },
-        name: { type: GraphQLString },
-      },
-      constraints: [
-        {
-          name: 'XOR',
-          leftSide: 'id',
-          rightSide: 'name',
+/**
+ * Gives a custom schema to test specific interparameter constraints
+ * @param constraints
+ * @returns {GraphQLSchema}
+ */
+export function getInterParamTestSchema(constraints) {
+  return new GraphQLSchema({
+    query: new GraphQLObjectType({
+      name: 'QueryRoot',
+      fields: () => ({
+        human: {
+          args: {
+            id: { type: GraphQLID },
+            name: { type: GraphQLString },
+            age: { type: GraphQLInt },
+            income: { type: GraphQLInt },
+            hasDrivingLicense: { type: GraphQLBoolean },
+          },
+          constraints,
+          type: Human,
         },
-      ],
-      type: Human,
-    },
-    alien: { type: Alien },
-    dog: { type: Dog },
-    cat: { type: Cat },
-    pet: { type: Pet },
-    catOrDog: { type: CatOrDog },
-    dogOrHuman: { type: DogOrHuman },
-    humanOrAlien: { type: HumanOrAlien },
-    complicatedArgs: { type: ComplicatedArgs },
-    invalidArg: {
-      args: {
-        arg: { type: InvalidScalar },
-      },
-      type: GraphQLString,
-    },
-    anyArg: {
-      args: {
-        arg: { type: AnyScalar },
-      },
-      type: GraphQLString,
-    },
-  }),
-});
-
-export const interparamTestSchema = new GraphQLSchema({
-  query: InterparamQueryRoot,
-  types: [Cat, Dog, Human, Alien],
-});
+      }),
+    }),
+    types: [Human],
+  });
+}
 
 function expectValid(schema, rule, queryString, options = {}) {
   const errors = validate(schema, parse(queryString, options), [rule]);
