@@ -45,18 +45,9 @@ export function NoInterparamConstraintViolations(
 
       // Go over the specified constraints
       for (const constraint of fieldDef.constraints) {
-        if (!validateConstraint(constraint, fieldNode)) {
+        if (!validateConstraint(context, constraint, fieldNode)) {
           // Report errors at the top level of the constraint
           // This way, we will show the complete constraint in the error message
-          context.reportError(
-            new GraphQLError(
-              interparameterConstraintViolationMessage(
-                constraint,
-                fieldDef.name,
-              ),
-              fieldNode,
-            ),
-          );
         }
       }
     },
@@ -66,44 +57,91 @@ export function NoInterparamConstraintViolations(
 /*
  * Internal functions to validate the constraints
  */
-function validateConstraint(constraint: GraphQLConstraint, fieldNode): boolean {
+function validateConstraint(
+  context: ValidationContext,
+  constraint: GraphQLConstraint,
+  fieldNode,
+): boolean {
   switch (constraint.name) {
     case 'XOR':
-      return validateXOR(constraint, fieldNode);
+      return executeConstraintValidationWithRule(
+        context,
+        constraint,
+        fieldNode,
+        (leftSideValidity, rightSideValidity) =>
+          // XOR is valid if the left or rightside is given, but not when both are given
+          (leftSideValidity || rightSideValidity) &&
+          !(leftSideValidity && rightSideValidity),
+      );
+    case 'THEN':
+      return executeConstraintValidationWithRule(
+        context,
+        constraint,
+        fieldNode,
+        (leftSideValidity, rightSideValidity) =>
+          // THEN is invalid if left is given and right not
+          // So we take the not of this test to check when a THEN is valid.
+          !(leftSideValidity && !rightSideValidity),
+      );
     default:
       // TODO better error (should not happen)
       console.log('Unknown Constraint: ' + constraint.name);
+      context.reportError(
+        new GraphQLError(
+          interparameterConstraintViolationMessage(
+            constraint,
+            fieldNode.name.value,
+          ),
+          fieldNode,
+        ),
+      );
       return false;
   }
 }
 
-function validateXOR(constraint: GraphQLConstraint, fieldNode): boolean {
+function executeConstraintValidationWithRule(
+  context,
+  constraint: GraphQLConstraint,
+  fieldNode,
+  isValidFunction,
+): boolean {
   // TODO remove logs
-  /* console.log('Constraint:');
-  console.log(constraint);*/
+  // console.log('Constraint:');
+  // console.log(constraint);
 
   const args = fieldNodeToArgMap(fieldNode);
 
-  /* console.log('Args: ');
-  console.log(args);*/
+  // console.log('Args:');
+  // console.log(args);
 
   const leftSideValidity =
     typeof constraint.leftSide === 'object'
-      ? validateConstraint(constraint.leftSide, fieldNode)
-      : args[constraint.leftSide];
+      ? validateConstraint(context, constraint.leftSide, fieldNode)
+      : args[constraint.leftSide] !== undefined;
   const rightSideValidity =
     typeof constraint.rightSide === 'object'
-      ? validateConstraint(constraint.rightSide, fieldNode)
-      : args[constraint.rightSide];
+      ? validateConstraint(context, constraint.rightSide, fieldNode)
+      : args[constraint.rightSide] !== undefined;
 
-  // Only one of both sides can be valid, because we have a XOR constraint
-  if (leftSideValidity && rightSideValidity) {
-    console.log('VIOLATION');
-    return false;
+  // console.log(leftSideValidity);
+  // console.log(rightSideValidity);
+
+  // If the left side is valid, then the right side should be valid too
+  if (isValidFunction(leftSideValidity, rightSideValidity)) {
+    return true;
   }
 
-  console.log('XOR ok');
-  return true;
+  context.reportError(
+    new GraphQLError(
+      interparameterConstraintViolationMessage(
+        constraint,
+        fieldNode.name.value,
+      ),
+      fieldNode,
+    ),
+  );
+
+  return false;
 }
 
 /*
