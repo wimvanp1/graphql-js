@@ -11,7 +11,7 @@ import { describe, it } from 'mocha';
 import {
   expectFailsRuleWithSchema,
   expectPassesRuleWithSchema,
-  interparamTestSchema,
+  getInterParamTestSchema,
 } from './harness';
 import {
   interparameterConstraintViolationMessage,
@@ -26,9 +26,15 @@ function interparamViolation(fieldName, constraint, line, column) {
 }
 
 describe('Validate: Interparameterconstraints', () => {
-  it('accepts a basic XOR constraint', () => {
+  it('accepts a basic XOR constraint with the left parameter given', () => {
     expectPassesRuleWithSchema(
-      interparamTestSchema,
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
       NoInterparamConstraintViolations,
       `
       {
@@ -40,9 +46,15 @@ describe('Validate: Interparameterconstraints', () => {
     );
   });
 
-  it('accepts a basic XOR constraint', () => {
+  it('accepts a basic XOR constraint with the right parameter given', () => {
     expectPassesRuleWithSchema(
-      interparamTestSchema,
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
       NoInterparamConstraintViolations,
       `
       {
@@ -54,9 +66,63 @@ describe('Validate: Interparameterconstraints', () => {
     );
   });
 
+  it('accepts a leftside nested XOR constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: {
+            name: 'XOR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+          rightSide: 'hasDrivingLicense',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33){
+          iq
+        }
+      }
+      `,
+    );
+  });
+
+  it('accepts a rightside nested XOR constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: 'hasDrivingLicense',
+          rightSide: {
+            name: 'XOR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(income: 33){
+          iq
+        }
+      }
+      `,
+    );
+  });
+
   it('recognizes a basic XOR violation', () => {
     expectFailsRuleWithSchema(
-      interparamTestSchema,
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
       NoInterparamConstraintViolations,
       `
       {
@@ -76,5 +142,306 @@ describe('Validate: Interparameterconstraints', () => {
     );
   });
 
-  // TODO add tests for nested XOR violations + nested XOR passes
+  it('recognizes a basic XOR violation with different parameters', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(income: 1000){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'XOR', leftSide: 'id', rightSide: 'name' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid leftside nested XOR constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: {
+            name: 'XOR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+          rightSide: 'hasDrivingLicense',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, income: 3000, hasDrivingLicense: true){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'XOR', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid rightside nested XOR constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: 'hasDrivingLicense',
+          rightSide: {
+            name: 'XOR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, income: 3000, hasDrivingLicense: true){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'XOR', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  /*
+   * Then Constraints
+   */
+  it('accepts a basic valid THEN constraint with both parameters given', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'THEN',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 3, name: "Wim"){
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('accepts a basic valid THEN constraint with no parameters given', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'THEN',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human{
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('accepts a leftside nested THEN constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'THEN',
+          leftSide: {
+            name: 'THEN',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+          rightSide: 'hasDrivingLicense',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, income: 999, hasDrivingLicense: false){
+          iq
+        }
+      }
+      `,
+    );
+  });
+  /*
+  it('accepts a rightside nested XOR constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: 'hasDrivingLicense',
+          rightSide: {
+            name: 'XOR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(income: 33){
+          iq
+        }
+      }
+      `,
+    );
+  });
+
+  it('recognizes a basic XOR violation', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 3, name: "Wim"){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'XOR', leftSide: 'id', rightSide: 'name' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('recognizes a basic XOR violation with different parameters', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(income: 1000){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'XOR', leftSide: 'id', rightSide: 'name' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid leftside nested XOR constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: {
+            name: 'XOR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+          rightSide: 'hasDrivingLicense',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, income: 3000, hasDrivingLicense: true){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'XOR', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid rightside nested XOR constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'XOR',
+          leftSide: 'hasDrivingLicense',
+          rightSide: {
+            name: 'XOR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, income: 3000, hasDrivingLicense: true){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'XOR', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });*/
 });
