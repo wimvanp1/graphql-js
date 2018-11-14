@@ -308,17 +308,34 @@ function printConstraints(options, constraints, indentation = '') {
         constraint =>
           indentation +
           '  ' +
-          constraint.leftSide +
+          printConstraintSide(constraint.leftSide) +
           ' ' +
           constraint.name +
           ' ' +
-          constraint.rightSide,
+          printConstraintSide(constraint.rightSide),
       )
       .join('\n') +
     '\n' +
     indentation +
     '}'
   );
+}
+
+function printConstraintSide(constraintSide) {
+  // If the side is a constraint itself: print it
+  if (typeof constraintSide === 'object') {
+    return (
+      '(' +
+      printConstraintSide(constraintSide.leftSide) +
+      ' ' +
+      constraintSide.name +
+      ' ' +
+      printConstraintSide(constraintSide.rightSide) +
+      ')'
+    );
+  }
+
+  return constraintSide;
 }
 
 function printInputValue(arg) {
