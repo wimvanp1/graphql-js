@@ -466,4 +466,247 @@ describe('Validate: Interparameterconstraints', () => {
       ],
     );
   });
+
+  /*
+   * With Constraints
+   */
+  it('accepts a basic valid WITH constraint with both parameters given', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'WITH',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 3, name: "Wim"){
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('accepts a basic valid WITH constraint with no parameters given', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'WITH',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human{
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('accepts a leftside nested WITH constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'WITH',
+          leftSide: {
+            name: 'WITH',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+          rightSide: 'hasDrivingLicense',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, income: 999, hasDrivingLicense: false){
+          iq
+        }
+      }
+      `,
+    );
+  });
+
+  it('accepts a rightside nested WITH constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'THEN',
+          leftSide: 'hasDrivingLicense',
+          rightSide: {
+            name: 'THEN',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(hasDrivingLicense: true, income: 33, age: 20){
+          iq
+        }
+      }
+      `,
+    );
+  });
+
+  it('recognizes a basic WITH violation', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'WITH',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 3){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'WITH', leftSide: 'id', rightSide: 'name' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid leftside nested WITH constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'WITH',
+          leftSide: {
+            name: 'WITH',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+          rightSide: 'hasDrivingLicense',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, hasDrivingLicense: true){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'WITH', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+        interparamViolation(
+          'human',
+          {
+            name: 'WITH',
+            leftSide: { name: 'WITH', leftSide: 'age', rightSide: 'income' },
+            rightSide: 'hasDrivingLicense',
+          },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid leftside nested WITH constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'WITH',
+          leftSide: {
+            name: 'WITH',
+            leftSide: 'age',
+            rightSide: 'hasDrivingLicense',
+          },
+          rightSide: 'income',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, hasDrivingLicense: true){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          {
+            name: 'WITH',
+            leftSide: {
+              name: 'WITH',
+              leftSide: 'age',
+              rightSide: 'hasDrivingLicense',
+            },
+            rightSide: 'income',
+          },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid rightside nested WITH constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'WITH',
+          leftSide: 'hasDrivingLicense',
+          rightSide: {
+            name: 'WITH',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, hasDrivingLicense: true){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'WITH', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+        interparamViolation(
+          'human',
+          {
+            name: 'WITH',
+            leftSide: 'hasDrivingLicense',
+            rightSide: { name: 'WITH', leftSide: 'age', rightSide: 'income' },
+          },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
 });

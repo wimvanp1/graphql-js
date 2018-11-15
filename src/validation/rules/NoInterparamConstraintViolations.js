@@ -68,7 +68,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
-        (leftSideValidity, rightSideValidity) =>
+        (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
           // XOR is valid if the left or rightside is given, but not when both are given
           (leftSideValidity || rightSideValidity) &&
           !(leftSideValidity && rightSideValidity),
@@ -78,10 +78,20 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
-        (leftSideValidity, rightSideValidity) =>
+        (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
           // THEN is invalid if left is given and right not
           // So we take the not of this test to check when a THEN is valid.
           !(leftSideValidity && !rightSideValidity),
+      );
+    case 'WITH':
+      return executeConstraintValidationWithRule(
+        context,
+        constraint,
+        fieldNode,
+        (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
+          // WITH is valid when left and right are either both valid or both invalid
+          (leftSideValidity && rightSideValidity) ||
+          (!leftSideValidity && !rightSideValidity),
       );
     default:
       // TODO better error (should not happen)
@@ -103,7 +113,7 @@ function executeConstraintValidationWithRule(
   context,
   constraint: GraphQLConstraint,
   fieldNode,
-  isValidFunction,
+  isValidFunction: (boolean, boolean) => boolean,
 ): boolean {
   // TODO remove logs
   // console.log('Constraint:');
