@@ -53,28 +53,6 @@ describe('Schema Builder', () => {
     expect(cycleOutput(body)).to.equal(body);
   });
 
-  // TODO make this
-  /*
-  it('Handles a field with a XOR-interparameter constraint between parenthesis', () => {
-    const body1 = dedent`
-      type Query {
-        str(i1: Int, i2: Int){
-          (i1 XOR i2)
-        }: String
-      }
-    `;
-
-    const body2 = dedent`
-      type Query {
-        str(i1: Int, i2: Int){
-          i1 XOR i2
-        }: String
-      }
-    `;
-
-    expect(cycleOutput(body1)).to.equal(body2);
-  });
-
   it('Handles a field with nested XOR-interparameter constraints', () => {
     const body = dedent`
       type Query {
@@ -86,5 +64,49 @@ describe('Schema Builder', () => {
 
     expect(cycleOutput(body)).to.equal(body);
   });
-  */
+
+  it('Handles a field with nested XOR-interparameter constraints', () => {
+    const body = dedent`
+      type Query {
+        str(i1: Int, i2: Int, i3: Int){
+          i1 XOR (i2 XOR i3)
+        }: String
+      }
+    `;
+
+    expect(cycleOutput(body)).to.equal(body);
+  });
+
+  it('Handles a field with a WITH contraint', () => {
+    const body = dedent`
+      type Query {
+        str(i1: Int, i2: Int){
+          i1 WITH i2
+        }: String
+      }
+    `;
+
+    expect(cycleOutput(body)).to.equal(body);
+  });
+
+  it('Handles a field with nested WITH-interparameter constraints', () => {
+    const body1 = dedent`
+      type Query {
+        str(i1: Int, i2: Int, i3: Int){
+          i1 WITH i2 WITH i3
+        }: String
+      }
+    `;
+
+    // The query builder will always add additional parenthesis
+    const body2 = dedent`
+      type Query {
+        str(i1: Int, i2: Int, i3: Int){
+          (i1 WITH i2) WITH i3
+        }: String
+      }
+    `;
+
+    expect(cycleOutput(body1)).to.equal(body2);
+  });
 });

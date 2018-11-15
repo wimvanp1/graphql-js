@@ -12,6 +12,7 @@ import type { NameNode } from './ast';
 export const InterparameterConstraintOperator = Object.freeze({
   XOR: 'XOR',
   THEN: 'THEN',
+  WITH: 'WITH',
 });
 
 export function isInterparameterConstraintOperator(name: NameNode) {
