@@ -300,15 +300,15 @@ describe('Validate: Interparameterconstraints', () => {
       `,
     );
   });
-  /*
-  it('accepts a rightside nested XOR constraint', () => {
+
+  it('accepts a rightside nested THEN constraint', () => {
     expectPassesRuleWithSchema(
       getInterParamTestSchema([
         {
-          name: 'XOR',
+          name: 'THEN',
           leftSide: 'hasDrivingLicense',
           rightSide: {
-            name: 'XOR',
+            name: 'THEN',
             leftSide: 'age',
             rightSide: 'income',
           },
@@ -317,7 +317,7 @@ describe('Validate: Interparameterconstraints', () => {
       NoInterparamConstraintViolations,
       `
       {
-        human(income: 33){
+        human(hasDrivingLicense: true, income: 33){
           iq
         }
       }
@@ -325,11 +325,11 @@ describe('Validate: Interparameterconstraints', () => {
     );
   });
 
-  it('recognizes a basic XOR violation', () => {
+  it('recognizes a basic THEN violation', () => {
     expectFailsRuleWithSchema(
       getInterParamTestSchema([
         {
-          name: 'XOR',
+          name: 'THEN',
           leftSide: 'id',
           rightSide: 'name',
         },
@@ -337,7 +337,7 @@ describe('Validate: Interparameterconstraints', () => {
       NoInterparamConstraintViolations,
       `
       {
-        human(id: 3, name: "Wim"){
+        human(id: 3){
           iq
         }
       }
@@ -345,7 +345,7 @@ describe('Validate: Interparameterconstraints', () => {
       [
         interparamViolation(
           'human',
-          { name: 'XOR', leftSide: 'id', rightSide: 'name' },
+          { name: 'THEN', leftSide: 'id', rightSide: 'name' },
           3,
           9,
         ),
@@ -353,41 +353,13 @@ describe('Validate: Interparameterconstraints', () => {
     );
   });
 
-  it('recognizes a basic XOR violation with different parameters', () => {
+  it('rejects an invalid leftside nested THEN constraint', () => {
     expectFailsRuleWithSchema(
       getInterParamTestSchema([
         {
-          name: 'XOR',
-          leftSide: 'id',
-          rightSide: 'name',
-        },
-      ]),
-      NoInterparamConstraintViolations,
-      `
-      {
-        human(income: 1000){
-          iq
-        }
-      }
-      `,
-      [
-        interparamViolation(
-          'human',
-          { name: 'XOR', leftSide: 'id', rightSide: 'name' },
-          3,
-          9,
-        ),
-      ],
-    );
-  });
-
-  it('rejects an invalid leftside nested XOR constraint', () => {
-    expectFailsRuleWithSchema(
-      getInterParamTestSchema([
-        {
-          name: 'XOR',
+          name: 'THEN',
           leftSide: {
-            name: 'XOR',
+            name: 'THEN',
             leftSide: 'age',
             rightSide: 'income',
           },
@@ -397,7 +369,7 @@ describe('Validate: Interparameterconstraints', () => {
       NoInterparamConstraintViolations,
       `
       {
-        human(age: 33, income: 3000, hasDrivingLicense: true){
+        human(age: 33, hasDrivingLicense: true){
           iq
         }
       }
@@ -405,7 +377,7 @@ describe('Validate: Interparameterconstraints', () => {
       [
         interparamViolation(
           'human',
-          { name: 'XOR', leftSide: 'age', rightSide: 'income' },
+          { name: 'THEN', leftSide: 'age', rightSide: 'income' },
           3,
           9,
         ),
@@ -413,14 +385,54 @@ describe('Validate: Interparameterconstraints', () => {
     );
   });
 
-  it('rejects an invalid rightside nested XOR constraint', () => {
+  it('rejects an invalid leftside nested THEN constraint', () => {
     expectFailsRuleWithSchema(
       getInterParamTestSchema([
         {
-          name: 'XOR',
+          name: 'THEN',
+          leftSide: {
+            name: 'THEN',
+            leftSide: 'age',
+            rightSide: 'hasDrivingLicense',
+          },
+          rightSide: 'income',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, hasDrivingLicense: true){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          {
+            name: 'THEN',
+            leftSide: {
+              name: 'THEN',
+              leftSide: 'age',
+              rightSide: 'hasDrivingLicense',
+            },
+            rightSide: 'income',
+          },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid rightside nested THEN constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'THEN',
           leftSide: 'hasDrivingLicense',
           rightSide: {
-            name: 'XOR',
+            name: 'THEN',
             leftSide: 'age',
             rightSide: 'income',
           },
@@ -429,7 +441,7 @@ describe('Validate: Interparameterconstraints', () => {
       NoInterparamConstraintViolations,
       `
       {
-        human(age: 33, income: 3000, hasDrivingLicense: true){
+        human(age: 33, hasDrivingLicense: true){
           iq
         }
       }
@@ -437,11 +449,21 @@ describe('Validate: Interparameterconstraints', () => {
       [
         interparamViolation(
           'human',
-          { name: 'XOR', leftSide: 'age', rightSide: 'income' },
+          { name: 'THEN', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+        interparamViolation(
+          'human',
+          {
+            name: 'THEN',
+            leftSide: 'hasDrivingLicense',
+            rightSide: { name: 'THEN', leftSide: 'age', rightSide: 'income' },
+          },
           3,
           9,
         ),
       ],
     );
-  });*/
+  });
 });
