@@ -407,7 +407,7 @@ describe('Interparameter Constraints Parser Tests', () => {
     const schema = `
       type Query {
         user(aa: String, bb: String, ccc: Int){
-          ((aa XOR bb) XOR ccc)
+          (aa XOR bb) XOR ccc
         }: User
       }
     `;
@@ -416,7 +416,7 @@ describe('Interparameter Constraints Parser Tests', () => {
 
     expect(toJSONDeep(result)).to.deep.equal({
       kind: Kind.DOCUMENT,
-      loc: { start: 0, end: 128 },
+      loc: { start: 0, end: 126 },
       definitions: [
         {
           description: undefined,
@@ -491,34 +491,34 @@ describe('Interparameter Constraints Parser Tests', () => {
               constraints: [
                 {
                   kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 98, start: 80 },
+                  loc: { end: 97, start: 79 },
                   name: {
                     kind: Kind.NAME,
-                    loc: { end: 94, start: 91 },
+                    loc: { end: 93, start: 90 },
                     value: 'XOR',
                   },
                   leftSide: {
                     kind: Kind.CONSTRAINT_DEFINITION,
-                    loc: { end: 89, start: 80 },
+                    loc: { end: 88, start: 79 },
                     name: {
                       kind: Kind.NAME,
-                      loc: { end: 86, start: 83 },
+                      loc: { end: 85, start: 82 },
                       value: 'XOR',
                     },
                     leftSide: {
                       kind: Kind.NAME,
-                      loc: { end: 82, start: 80 },
+                      loc: { end: 81, start: 79 },
                       value: 'aa',
                     },
                     rightSide: {
                       kind: Kind.NAME,
-                      loc: { end: 89, start: 87 },
+                      loc: { end: 88, start: 86 },
                       value: 'bb',
                     },
                   },
                   rightSide: {
                     kind: Kind.NAME,
-                    loc: { end: 98, start: 95 },
+                    loc: { end: 97, start: 94 },
                     value: 'ccc',
                   },
                 },
@@ -526,7 +526,7 @@ describe('Interparameter Constraints Parser Tests', () => {
               description: undefined,
               directives: [],
               kind: Kind.FIELD_DEFINITION,
-              loc: { end: 115, start: 28 },
+              loc: { end: 113, start: 28 },
               name: {
                 kind: Kind.NAME,
                 loc: { end: 32, start: 28 },
@@ -534,10 +534,10 @@ describe('Interparameter Constraints Parser Tests', () => {
               },
               type: {
                 kind: Kind.NAMED_TYPE,
-                loc: { end: 115, start: 111 },
+                loc: { end: 113, start: 109 },
                 name: {
                   kind: Kind.NAME,
-                  loc: { end: 115, start: 111 },
+                  loc: { end: 113, start: 109 },
                   value: 'User',
                 },
               },
@@ -545,7 +545,7 @@ describe('Interparameter Constraints Parser Tests', () => {
           ],
           interfaces: [],
           kind: Kind.OBJECT_TYPE_DEFINITION,
-          loc: { end: 123, start: 7 },
+          loc: { end: 121, start: 7 },
           name: {
             kind: Kind.NAME,
             loc: { end: 17, start: 12 },
