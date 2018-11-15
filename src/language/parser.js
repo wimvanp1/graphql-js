@@ -972,7 +972,15 @@ function parseConstraintsDefs(
     return [];
   }
 
-  return many(lexer, TokenKind.BRACE_L, parseConstraintDef, TokenKind.BRACE_R);
+  return manyAllowChained(
+    lexer,
+    TokenKind.BRACE_L,
+    parseConstraintDef,
+    TokenKind.BRACE_R,
+    (lxr: Lexer<*>) =>
+      peek(lxr, TokenKind.NAME) &&
+      InterparameterConstraintOperator.hasOwnProperty(lxr.token.value),
+  );
 }
 
 /**
@@ -1018,6 +1026,7 @@ function parseConstraintDef(
   if (isInterparameterConstraintOperator(firstName) && previousConstraint) {
     leftSide = previousConstraint;
     constraintName = firstName;
+    // The right side can be a nested inter-parameter constraint or just an ordinary name
     rightSide = parseNameOrInterparameterConstraint(lexer);
 
     // Fix the location to include the first constraint as well
@@ -1675,13 +1684,62 @@ function any<T>(
 function many<T>(
   lexer: Lexer<*>,
   openKind: TokenKindEnum,
-  parseFn: (lexer: Lexer<*>, previousNode?: ?T) => T,
+  parseFn: (lexer: Lexer<*>) => T,
   closeKind: TokenKindEnum,
 ): Array<T> {
   expect(lexer, openKind);
   const nodes = [parseFn(lexer)];
   while (!skip(lexer, closeKind)) {
-    nodes.push(parseFn(lexer, nodes[nodes.length - 1]));
+    nodes.push(parseFn(lexer));
   }
+  return nodes;
+}
+/**
+ * Returns a non-empty list of parse nodes, determined by
+ * the parseFn. This list begins with a lex token of openKind
+ * and ends with a lex token of closeKind. Advances the parser
+ * to the next lex token after the closing token.
+ * It expects that nodes can be changed together using a name to create a bigger node.
+ * After each call to parseFn, it will check if the result is a name.
+ * If this is the case, the parseFn will be called with the previous result as second parameter
+ *
+ * @param lexer The instance of the lexer that is being used to parse
+ * @param openKind One token kind that should be parsed as opening tag
+ * @param parseFn A function to be called for each parsed token
+ * @param closeKind One token kind that should be parsed as a closing tag
+ * @param chainChecker A filter that tells if the previous node should be chained to the next one
+ * @returns {Array}
+ */
+function manyAllowChained<T>(
+  lexer: Lexer<*>,
+  openKind: TokenKindEnum,
+  parseFn: (lexer: Lexer<*>, previousNode?: ?T) => T,
+  closeKind: TokenKindEnum,
+  chainChecker: (lexer: Lexer<*>) => boolean,
+): Array<T> {
+  expect(lexer, openKind);
+  const nodes = [];
+
+  // We keep a temporary result, as a name could chain this node to a bigger one.
+  let tempNode = parseFn(lexer);
+
+  while (!skip(lexer, closeKind)) {
+    if (chainChecker(lexer)) {
+      // Chained node: enlarge the temporary node with the result
+      tempNode = parseFn(lexer, tempNode);
+      continue;
+    }
+
+    // The node is not chained.
+    // Save the temporary node
+    nodes.push(tempNode);
+
+    // Continue parsing and store the result in the temporary node
+    tempNode = parseFn(lexer);
+  }
+
+  // Finally add the temporary node
+  nodes.push(tempNode);
+
   return nodes;
 }
