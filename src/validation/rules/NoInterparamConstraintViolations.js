@@ -102,6 +102,15 @@ function validateConstraint(
           (leftSideValidity && rightSideValidity) ||
           (!leftSideValidity && !rightSideValidity),
       );
+    case 'AND':
+      return executeConstraintValidationWithRule(
+        context,
+        constraint,
+        fieldNode,
+        (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
+          // AND is valid when left and right are both valid
+          leftSideValidity && rightSideValidity,
+      );
     default:
       // TODO better error (should not happen)
       // console.log('Unknown Constraint: ' + constraint.name);
