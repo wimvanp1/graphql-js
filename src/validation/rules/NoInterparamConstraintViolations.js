@@ -69,9 +69,18 @@ function validateConstraint(
         constraint,
         fieldNode,
         (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
-          // XOR is valid if the left or rightside is given, but not when both are given
+          // XOR is valid if the left or right side is given, but not when both are given
           (leftSideValidity || rightSideValidity) &&
           !(leftSideValidity && rightSideValidity),
+      );
+    case 'OR':
+      return executeConstraintValidationWithRule(
+        context,
+        constraint,
+        fieldNode,
+        (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
+          // OR is valid if the left or right side is given, or both
+          leftSideValidity || rightSideValidity,
       );
     case 'THEN':
       return executeConstraintValidationWithRule(
@@ -95,7 +104,7 @@ function validateConstraint(
       );
     default:
       // TODO better error (should not happen)
-      console.log('Unknown Constraint: ' + constraint.name);
+      // console.log('Unknown Constraint: ' + constraint.name);
       context.reportError(
         new GraphQLError(
           interparameterConstraintViolationMessage(

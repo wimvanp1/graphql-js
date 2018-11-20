@@ -109,4 +109,37 @@ describe('Schema Builder', () => {
 
     expect(cycleOutput(body1)).to.equal(body2);
   });
+
+  it('Handles a field with a WITH contraint', () => {
+    const body = dedent`
+      type Query {
+        str(i1: Int, i2: Int){
+          i1 OR i2
+        }: String
+      }
+    `;
+
+    expect(cycleOutput(body)).to.equal(body);
+  });
+
+  it('Handles a field with nested WITH-interparameter constraints', () => {
+    const body1 = dedent`
+      type Query {
+        str(i1: Int, i2: Int, i3: Int){
+          i1 OR i2 OR i3
+        }: String
+      }
+    `;
+
+    // The query builder will always add additional parenthesis
+    const body2 = dedent`
+      type Query {
+        str(i1: Int, i2: Int, i3: Int){
+          (i1 OR i2) OR i3
+        }: String
+      }
+    `;
+
+    expect(cycleOutput(body1)).to.equal(body2);
+  });
 });
