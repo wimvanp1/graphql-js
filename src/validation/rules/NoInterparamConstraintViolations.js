@@ -122,7 +122,7 @@ function executeConstraintValidationWithRule(
   context,
   constraint: GraphQLConstraint,
   fieldNode,
-  isValidFunction: (boolean, boolean) => boolean,
+  isValidFunction, // (boolean, boolean) => boolean)
 ): boolean {
   // TODO remove logs
   // console.log('Constraint:');
@@ -167,19 +167,21 @@ function executeConstraintValidationWithRule(
  * Internal helper functions
  */
 function fieldNodeToArgMap(fieldNode) {
-  if (fieldNode && fieldNode.arguments) {
-    return keyValMap(
-      fieldNode.arguments,
-      field => field.name.value,
-      field =>
-        field.value && field.value.value !== undefined
-          ? field.value.value
-          : undefined,
-    );
+  if (!fieldNode || !fieldNode.arguments) {
+    // No arguments have been defined, return an empty map
+    return {};
   }
 
-  // No arguments have been defined, return an empty map
-  return {};
+  const args = fieldNode.arguments;
+
+  return keyValMap(
+    args,
+    field => field.name.value,
+    field =>
+      field.value && field.value.value !== undefined
+        ? field.value.value
+        : undefined,
+  );
 }
 
 function constraintToString(constraint: GraphQLConstraint): string {
