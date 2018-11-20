@@ -538,10 +538,10 @@ describe('Validate: Interparameterconstraints', () => {
     expectPassesRuleWithSchema(
       getInterParamTestSchema([
         {
-          name: 'THEN',
+          name: 'WITH',
           leftSide: 'hasDrivingLicense',
           rightSide: {
-            name: 'THEN',
+            name: 'WITH',
             leftSide: 'age',
             rightSide: 'income',
           },
@@ -702,6 +702,229 @@ describe('Validate: Interparameterconstraints', () => {
             name: 'WITH',
             leftSide: 'hasDrivingLicense',
             rightSide: { name: 'WITH', leftSide: 'age', rightSide: 'income' },
+          },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  /*
+   * OR Constraints
+   */
+  it('accepts a basic valid OR constraint with both parameters given', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'OR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 3, name: "Wim"){
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('accepts a basic valid OR constraint with one parameter given', () => {
+    // left side given
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'OR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id:33){
+          iq
+        }
+      }
+    `,
+    );
+
+    // right side given
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'OR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(name: "Wim"){
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('accepts a leftside nested OR constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'OR',
+          leftSide: {
+            name: 'OR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+          rightSide: 'hasDrivingLicense',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(income: 999){
+          iq
+        }
+      }
+      `,
+    );
+  });
+
+  it('accepts a rightside nested OR constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'OR',
+          leftSide: 'hasDrivingLicense',
+          rightSide: {
+            name: 'OR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(income: 33){
+          iq
+        }
+      }
+      `,
+    );
+  });
+
+  it('recognizes a basic OR violation with no parameters given', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'OR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'OR', leftSide: 'id', rightSide: 'name' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid leftside nested OR constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'OR',
+          leftSide: {
+            name: 'OR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+          rightSide: 'hasDrivingLicense',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 951){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'OR', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+        interparamViolation(
+          'human',
+          {
+            name: 'OR',
+            leftSide: { name: 'OR', leftSide: 'age', rightSide: 'income' },
+            rightSide: 'hasDrivingLicense',
+          },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid rightside nested OR constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'OR',
+          leftSide: 'hasDrivingLicense',
+          rightSide: {
+            name: 'OR',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(name: "Wim"){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'OR', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+        interparamViolation(
+          'human',
+          {
+            name: 'OR',
+            leftSide: 'hasDrivingLicense',
+            rightSide: { name: 'OR', leftSide: 'age', rightSide: 'income' },
           },
           3,
           9,
