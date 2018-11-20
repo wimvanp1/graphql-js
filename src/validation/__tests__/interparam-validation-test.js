@@ -932,4 +932,241 @@ describe('Validate: Interparameterconstraints', () => {
       ],
     );
   });
+
+  /*
+   * AND Constraints
+   */
+  it('accepts a basic valid AND constraint with both parameters given', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'AND',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 3, name: "Wim"){
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('accepts a leftside nested AND constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'AND',
+          leftSide: {
+            name: 'AND',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+          rightSide: 'hasDrivingLicense',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(income: 999, age: 13, hasDrivingLicense: false){
+          iq
+        }
+      }
+      `,
+    );
+  });
+
+  it('accepts a right side nested AND constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'OR',
+          leftSide: 'hasDrivingLicense',
+          rightSide: {
+            name: 'AND',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 21, income: 33){
+          iq
+        }
+      }
+      `,
+    );
+  });
+
+  it('recognizes a basic AND violation with no parameters given', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'AND',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'AND', leftSide: 'id', rightSide: 'name' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('recognizes a basic AND violation with one of two parameters given', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'AND',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 33){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'AND', leftSide: 'id', rightSide: 'name' },
+          3,
+          9,
+        ),
+      ],
+    );
+
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'AND',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(name: "Wim"){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'AND', leftSide: 'id', rightSide: 'name' },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid left side nested AND constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'AND',
+          leftSide: {
+            name: 'AND',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+          rightSide: 'hasDrivingLicense',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 951, hasDrivingLicense: false){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'AND', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+        interparamViolation(
+          'human',
+          {
+            name: 'AND',
+            leftSide: { name: 'AND', leftSide: 'age', rightSide: 'income' },
+            rightSide: 'hasDrivingLicense',
+          },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('rejects an invalid right side nested AND constraint', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'AND',
+          leftSide: 'hasDrivingLicense',
+          rightSide: {
+            name: 'AND',
+            leftSide: 'age',
+            rightSide: 'income',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(hasDrivingLicense: true, name: "Wim", income: 19520){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: 'AND', leftSide: 'age', rightSide: 'income' },
+          3,
+          9,
+        ),
+        interparamViolation(
+          'human',
+          {
+            name: 'AND',
+            leftSide: 'hasDrivingLicense',
+            rightSide: { name: 'AND', leftSide: 'age', rightSide: 'income' },
+          },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
 });

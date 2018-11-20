@@ -14,6 +14,7 @@ export const InterparameterConstraintOperator = Object.freeze({
   OR: 'OR',
   THEN: 'THEN',
   WITH: 'WITH',
+  AND: 'AND',
 });
 
 export function isInterparameterConstraintOperator(name: NameNode) {
