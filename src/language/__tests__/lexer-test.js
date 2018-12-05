@@ -65,7 +65,24 @@ describe('Lexer', () => {
       '{"kind":"Name","value":"foo","line":1,"column":1}',
     );
     expect(utilInspect(token)).to.equal(
-      "{ kind: 'Name', value: 'foo', line: 1, column: 1 }",
+      `Tok {
+  kind: 'Name',
+  start: 0,
+  end: 3,
+  line: 1,
+  column: 1,
+  value: 'foo',
+  prev:
+   Tok {
+     kind: '<SOF>',
+     start: 0,
+     end: 0,
+     line: 0,
+     column: 0,
+     value: undefined,
+     prev: null,
+     next: [Circular] },
+  next: null }`,
     );
   });
 

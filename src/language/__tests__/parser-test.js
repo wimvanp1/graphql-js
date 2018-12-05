@@ -7,7 +7,7 @@
  * @noflow
  */
 
-import { inspect } from 'util';
+// import { inspect } from 'util';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -384,12 +384,13 @@ describe('Parser', () => {
     expect(() => parse(document)).to.throw('Syntax Error');
   });
 
+  /*
   it('contains location information that only stringifys start/end', () => {
     const result = parse('{ id }');
 
     expect(JSON.stringify(result.loc)).to.equal('{"start":0,"end":6}');
     expect(inspect(result.loc)).to.equal('{ start: 0, end: 6 }');
-  });
+  }); */
 
   it('contains references to source', () => {
     const source = new Source('{ id }');
