@@ -186,7 +186,7 @@ export function execute(
 
 function executeImpl(
   schema,
-  document,
+  document, // A parsed query
   rootValue,
   contextValue,
   variableValues,
@@ -719,6 +719,7 @@ export function resolveFieldValueOrError<TSource>(
     // Build a JS object of arguments from the field.arguments AST, using the
     // variables scope to fulfill any variable references.
     // TODO: find a way to memoize, in case this field is within a List type.
+
     const args = getArgumentValues(
       fieldDef,
       fieldNodes[0],
