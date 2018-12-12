@@ -7,8 +7,6 @@
  * @flow strict
  */
 
-import type { NameNode } from './ast';
-
 export const InterparameterConstraintOperator = Object.freeze({
   XOR: 'XOR',
   OR: 'OR',
@@ -17,6 +15,6 @@ export const InterparameterConstraintOperator = Object.freeze({
   AND: 'AND',
 });
 
-export function isInterparameterConstraintOperator(name: NameNode) {
-  return InterparameterConstraintOperator.hasOwnProperty(name.value);
+export function isInterparameterConstraintOperator(name: string) {
+  return InterparameterConstraintOperator.hasOwnProperty(name);
 }

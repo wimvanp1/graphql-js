@@ -67,10 +67,7 @@ import type {
 
 import { Kind } from './kinds';
 import { DirectiveLocation } from './directiveLocation';
-import {
-  InterparameterConstraintOperator,
-  isInterparameterConstraintOperator,
-} from './interparameterConstraint';
+import { isInterparameterConstraintOperator } from './interparameterConstraint';
 
 /**
  * Configuration options to control parser behavior
@@ -972,103 +969,56 @@ function parseConstraintsDefs(
     return [];
   }
 
-  return manyAllowChained(
-    lexer,
-    TokenKind.BRACE_L,
-    parseConstraintDef,
-    TokenKind.BRACE_R,
-    (lxr: Lexer<*>) =>
-      peek(lxr, TokenKind.NAME) &&
-      InterparameterConstraintOperator.hasOwnProperty(lxr.token.value),
-  );
+  return many(lexer, TokenKind.BRACE_L, parseConstraintDef, TokenKind.BRACE_R);
 }
 
 /**
- * ConstraintDefinition : Argument1 LogicOperator Argument2
- *                      : (Argument1 LogicOperator Argument2)
+ * ConstraintDefinition : LogicOperator (Argument1 [, Argument2])
  * Each argument can be another constraint definition
  */
-function parseConstraintDef(
-  lexer: Lexer<*>,
-  previousConstraint?: ?ConstraintDefinitionNode,
-): ConstraintDefinitionNode {
-  if (peek(lexer, TokenKind.PAREN_L)) {
-    // The constraint is wrapped in parenthesis
-    const result = any(
-      lexer,
-      TokenKind.PAREN_L,
-      parseConstraintDef,
-      TokenKind.PAREN_R,
-    );
-
-    if (result.length === 0) {
-      throw unexpected(lexer, lexer.lastToken);
-    }
-
-    // Return the biggest possible constraint
-    // This is stored as last element of the list
-    return result[result.length - 1];
-  }
-
+function parseConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
   const start = lexer.token;
-  const firstName = parseName(lexer);
+  const constraintName = parseName(lexer);
 
-  let leftSide;
-  let constraintName;
-  let rightSide;
-  let location;
+  // We expect that the name is followed by an opening parenthesis
+  expect(lexer, TokenKind.PAREN_L);
 
-  /* Allow nesting of interparameter constraints
-   * If we previously parsed a interparameter constraint and we now start with a logic operator
-   * then we know that we have a nested constraint.
-   * Eg: var1 THEN (var2 XOR var3)
-   */
-  if (isInterparameterConstraintOperator(firstName) && previousConstraint) {
-    leftSide = previousConstraint;
-    constraintName = firstName;
-    // The right side can be a nested inter-parameter constraint or just an ordinary name
-    rightSide = parseNameOrInterparameterConstraint(lexer);
+  // Now parse the first constraint, which is a name or a new interparameter constraint
+  const leftSide = parseNameOrInterparameterConstraint(lexer);
+  const rightSide = parseNameOrInterparameterConstraint(lexer);
 
-    // Fix the location to include the first constraint as well
-    // If we would just use start, then the location would only start from the logical operator
-    const intermediateLocation = loc(lexer, start);
-    if (intermediateLocation !== undefined && leftSide.loc !== undefined) {
-      location = new Loc(
-        leftSide.loc.startToken,
-        intermediateLocation.endToken,
-        lexer.source,
-      );
-    } else {
-      // Fallback which should be unnecessary
-      location = intermediateLocation;
-    }
-  } else {
-    leftSide = firstName;
-    constraintName = parseInterparameterConstraint(lexer);
-    rightSide = parseNameOrInterparameterConstraint(lexer);
-    location = loc(lexer, start);
-  }
+  // Expect that the list of arguments is ended by a closing parenthesis
+  expect(lexer, TokenKind.PAREN_R);
 
   return {
     kind: Kind.CONSTRAINT_DEFINITION,
     name: constraintName,
     leftSide,
     rightSide,
-    loc: location,
+    loc: loc(lexer, start),
   };
 }
 
 function parseNameOrInterparameterConstraint(
   lexer: Lexer<*>,
 ): NameNode | ConstraintDefinitionNode {
-  // We expect parenthesis around a new constraint
-  // So check if the next token is an opening parenthesis
-  if (peek(lexer, TokenKind.PAREN_L)) {
-    // There is no previous constraint because the constraint is between parenthesis
+  // We look ahead, because the parse constraint function will also parse the name
+  // If we would parse here direclty, that parse function will not see the operator name
+  const name = lexer.lookahead();
+
+  console.log('parsing name/interparam:');
+  // console.log(name);
+  console.log(name.value);
+
+  // Check if this name is an interparameter constraint
+  if (name.value && isInterparameterConstraintOperator(name.value)) {
+    console.log('***Discovered interparam***');
+    // Call the correct function to parse the constraint definition
     return parseConstraintDef(lexer);
   }
 
   // Other scenario: it should be a name
+  // We directly parse it, because we should return a name node
   return parseName(lexer);
 }
 
@@ -1542,15 +1492,6 @@ function parseDirectiveLocation(lexer: Lexer<*>): NameNode {
   throw unexpected(lexer, start);
 }
 
-function parseInterparameterConstraint(lexer: Lexer<*>): NameNode {
-  const start = lexer.token;
-  const name = parseName(lexer);
-  if (InterparameterConstraintOperator.hasOwnProperty(name.value)) {
-    return name;
-  }
-  throw unexpected(lexer, start);
-}
-
 // Core parsing utility functions
 
 /**
@@ -1692,54 +1633,5 @@ function many<T>(
   while (!skip(lexer, closeKind)) {
     nodes.push(parseFn(lexer));
   }
-  return nodes;
-}
-/**
- * Returns a non-empty list of parse nodes, determined by
- * the parseFn. This list begins with a lex token of openKind
- * and ends with a lex token of closeKind. Advances the parser
- * to the next lex token after the closing token.
- * It expects that nodes can be changed together using a name to create a bigger node.
- * After each call to parseFn, it will check if the result is a name.
- * If this is the case, the parseFn will be called with the previous result as second parameter
- *
- * @param lexer The instance of the lexer that is being used to parse
- * @param openKind One token kind that should be parsed as opening tag
- * @param parseFn A function to be called for each parsed token
- * @param closeKind One token kind that should be parsed as a closing tag
- * @param chainChecker A filter that tells if the previous node should be chained to the next one
- * @returns {Array}
- */
-function manyAllowChained<T>(
-  lexer: Lexer<*>,
-  openKind: TokenKindEnum,
-  parseFn: (lexer: Lexer<*>, previousNode?: ?T) => T,
-  closeKind: TokenKindEnum,
-  chainChecker: (lexer: Lexer<*>) => boolean,
-): Array<T> {
-  expect(lexer, openKind);
-  const nodes = [];
-
-  // We keep a temporary result, as a name could chain this node to a bigger one.
-  let tempNode = parseFn(lexer);
-
-  while (!skip(lexer, closeKind)) {
-    if (chainChecker(lexer)) {
-      // Chained node: enlarge the temporary node with the result
-      tempNode = parseFn(lexer, tempNode);
-      continue;
-    }
-
-    // The node is not chained.
-    // Save the temporary node
-    nodes.push(tempNode);
-
-    // Continue parsing and store the result in the temporary node
-    tempNode = parseFn(lexer);
-  }
-
-  // Finally add the temporary node
-  nodes.push(tempNode);
-
   return nodes;
 }

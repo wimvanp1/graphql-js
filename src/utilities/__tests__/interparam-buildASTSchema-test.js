@@ -32,7 +32,7 @@ describe('Schema Builder', () => {
     const body = dedent`
       type Query {
         str(i1: Int, i2: Int){
-          i1 XOR i2
+          XOR(i1, i2)
         }: String
       }
     `;
@@ -44,8 +44,8 @@ describe('Schema Builder', () => {
     const body = dedent`
       type Query {
         str(i1: Int, i2: Int, i3: Int){
-          i1 XOR i2
-          i2 THEN i3
+          XOR(i1, i2)
+          THEN(i2, i3)
         }: String
       }
     `;
@@ -57,7 +57,7 @@ describe('Schema Builder', () => {
     const body = dedent`
       type Query {
         str(i1: Int, i2: Int, i3: Int){
-          (i1 XOR i2) XOR i3
+          XOR(XOR(i1, i2), i3)
         }: String
       }
     `;
@@ -69,7 +69,7 @@ describe('Schema Builder', () => {
     const body = dedent`
       type Query {
         str(i1: Int, i2: Int, i3: Int){
-          i1 XOR (i2 XOR i3)
+          XOR(i1, XOR(i2, i3))
         }: String
       }
     `;
@@ -81,7 +81,7 @@ describe('Schema Builder', () => {
     const body = dedent`
       type Query {
         str(i1: Int, i2: Int){
-          i1 WITH i2
+          WITH(i1, i2)
         }: String
       }
     `;
@@ -93,7 +93,7 @@ describe('Schema Builder', () => {
     const body1 = dedent`
       type Query {
         str(i1: Int, i2: Int, i3: Int){
-          i1 WITH i2 WITH i3
+          WITH(i1, WITH(i2, i3))
         }: String
       }
     `;
@@ -102,7 +102,7 @@ describe('Schema Builder', () => {
     const body2 = dedent`
       type Query {
         str(i1: Int, i2: Int, i3: Int){
-          (i1 WITH i2) WITH i3
+          WITH(WITH(i1, i2), i3)
         }: String
       }
     `;
@@ -114,7 +114,7 @@ describe('Schema Builder', () => {
     const body = dedent`
       type Query {
         str(i1: Int, i2: Int){
-          i1 OR i2
+          OR(i1, i2)
         }: String
       }
     `;
@@ -126,7 +126,7 @@ describe('Schema Builder', () => {
     const body1 = dedent`
       type Query {
         str(i1: Int, i2: Int, i3: Int){
-          i1 OR i2 OR i3
+          OR(i1, OR(i2, i3))
         }: String
       }
     `;
@@ -135,7 +135,7 @@ describe('Schema Builder', () => {
     const body2 = dedent`
       type Query {
         str(i1: Int, i2: Int, i3: Int){
-          (i1 OR i2) OR i3
+          OR(OR(i1, i2), i3)
         }: String
       }
     `;

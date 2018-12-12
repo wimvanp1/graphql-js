@@ -17,7 +17,7 @@ describe('Type System', () => {
     const schema = buildSchema(`
       type Query {
         field(id: ID, name: String){
-          id XOR name
+          XOR(id, name)
         }: String
       }
     `);
@@ -28,7 +28,7 @@ describe('Type System', () => {
     const schema = buildSchema(`
       type Query {
         field(name: String, name: String){ 
-          unknown XOR name
+          XOR(unknown, name)
         }: String
       }
     `);
@@ -47,8 +47,8 @@ describe('Type System', () => {
     const schema = buildSchema(`
       type Query {
         field(id: ID, name: String, phone: Int){
-          id XOR name
-          name THEN phone
+          XOR(id, name)
+          THEN(name, phone)
         }: String
       }
     `);
@@ -79,7 +79,7 @@ describe('Type System', () => {
     const schema = buildSchema(`
       type Query {
         field(id: ID, name: String, phone: Int){
-          (id XOR name) XOR phone
+          XOR(XOR(id, name), phone)
         }: String
       }
     `);
@@ -90,7 +90,7 @@ describe('Type System', () => {
     const schema = buildSchema(`
       type Query {
         field(id: ID, name: String, phone: Int){
-          id THEN (name XOR phone)
+          THEN(id, XOR(name, phone))
         }: String
       }
     `);
@@ -112,7 +112,7 @@ describe('Type System', () => {
     const schema = buildSchema(`
       type Query {
         field(id: ID, name: String, phone: Int){
-          ((id XOR unknown) XOR phone)
+          XOR(XOR(id, unknown), phone)
         }: String
       }
     `);
@@ -129,7 +129,7 @@ describe('Type System', () => {
     const schema = buildSchema(`
       type Query {
         field(id: ID, name: String, phone: Int){
-          (id XOR (phone XOR unknown))
+          XOR(id, XOR(phone, unknown))
         }: String
       }
     `);
@@ -141,4 +141,19 @@ describe('Type System', () => {
       },
     ]);
   });
+
+  // TODO make this test
+  /* it('accepts valid NOT interparameter constraints', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, name: String, phone: Int){
+          NOT(id)
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([]);
+  }); */
+
+  // TODO nested not tests
+  // TODO tests with not in other constraints
 });

@@ -308,11 +308,12 @@ function printConstraints(options, constraints, indentation = '') {
         constraint =>
           indentation +
           '  ' +
-          printConstraintSide(constraint.leftSide) +
-          ' ' +
           constraint.name +
-          ' ' +
-          printConstraintSide(constraint.rightSide),
+          '(' +
+          printConstraintSide(constraint.leftSide) +
+          ', ' +
+          printConstraintSide(constraint.rightSide) +
+          ')',
       )
       .join('\n') +
     '\n' +
@@ -325,11 +326,10 @@ function printConstraintSide(constraintSide) {
   // If the side is a constraint itself: print it
   if (typeof constraintSide === 'object') {
     return (
+      constraintSide.name +
       '(' +
       printConstraintSide(constraintSide.leftSide) +
-      ' ' +
-      constraintSide.name +
-      ' ' +
+      ', ' +
       printConstraintSide(constraintSide.rightSide) +
       ')'
     );

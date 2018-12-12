@@ -102,7 +102,7 @@ describe('Interparameter Constraints Parser Tests', () => {
     const schema = `
       type Query {
         user(id: String, name: String){
-          id XOR name
+          XOR(id, name)
         }: User
       }
     `;
@@ -131,11 +131,13 @@ describe('Interparameter Constraints Parser Tests', () => {
       TokenKind.NAME,
       TokenKind.PAREN_R,
 
-      // { id XOR name }
+      // { XOR(id, name) }
       TokenKind.BRACE_L,
       TokenKind.NAME,
+      TokenKind.PAREN_L,
       TokenKind.NAME,
       TokenKind.NAME,
+      TokenKind.PAREN_R,
       TokenKind.BRACE_R,
 
       // : User

@@ -13,283 +13,7 @@ describe('Interparameter Constraints Parser Tests', () => {
     const schema = `
       type Query {
         user(id: String, name: String){
-          id XOR name
-        }: User
-      }
-    `;
-
-    const result = parse(schema);
-
-    expect(toJSONDeep(result)).to.deep.equal({
-      kind: Kind.DOCUMENT,
-      loc: { start: 0, end: 110 },
-      definitions: [
-        {
-          description: undefined,
-          directives: [],
-          fields: [
-            {
-              arguments: [
-                {
-                  defaultValue: undefined,
-                  description: undefined,
-                  directives: [],
-                  kind: Kind.INPUT_VALUE_DEFINITION,
-                  loc: { end: 43, start: 33 },
-                  name: {
-                    kind: Kind.NAME,
-                    loc: { end: 35, start: 33 },
-                    value: 'id',
-                  },
-                  type: {
-                    kind: Kind.NAMED_TYPE,
-                    loc: { end: 43, start: 37 },
-                    name: {
-                      kind: Kind.NAME,
-                      loc: { end: 43, start: 37 },
-                      value: 'String',
-                    },
-                  },
-                },
-                {
-                  defaultValue: undefined,
-                  description: undefined,
-                  directives: [],
-                  kind: Kind.INPUT_VALUE_DEFINITION,
-                  loc: { end: 57, start: 45 },
-                  name: {
-                    kind: Kind.NAME,
-                    loc: { end: 49, start: 45 },
-                    value: 'name',
-                  },
-                  type: {
-                    kind: Kind.NAMED_TYPE,
-                    loc: { end: 57, start: 51 },
-                    name: {
-                      kind: Kind.NAME,
-                      loc: { end: 57, start: 51 },
-                      value: 'String',
-                    },
-                  },
-                },
-              ],
-              constraints: [
-                {
-                  kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 81, start: 70 },
-                  name: {
-                    kind: Kind.NAME,
-                    loc: { end: 76, start: 73 },
-                    value: 'XOR',
-                  },
-                  leftSide: {
-                    kind: Kind.NAME,
-                    loc: { end: 72, start: 70 },
-                    value: 'id',
-                  },
-                  rightSide: {
-                    kind: Kind.NAME,
-                    loc: { end: 81, start: 77 },
-                    value: 'name',
-                  },
-                },
-              ],
-              description: undefined,
-              directives: [],
-              kind: Kind.FIELD_DEFINITION,
-              loc: { end: 97, start: 28 },
-              name: {
-                kind: Kind.NAME,
-                loc: { end: 32, start: 28 },
-                value: 'user',
-              },
-              type: {
-                kind: Kind.NAMED_TYPE,
-                loc: { end: 97, start: 93 },
-                name: {
-                  kind: Kind.NAME,
-                  loc: { end: 97, start: 93 },
-                  value: 'User',
-                },
-              },
-            },
-          ],
-          interfaces: [],
-          kind: Kind.OBJECT_TYPE_DEFINITION,
-          loc: { end: 105, start: 7 },
-          name: {
-            kind: Kind.NAME,
-            loc: { end: 17, start: 12 },
-            value: 'Query',
-          },
-        },
-      ],
-    });
-  });
-
-  it('Correctly parses a schema with multiple interparameter constraints', async () => {
-    const schema = `
-      type Query {
-        user(id: String, name: String){
-          id XOR name
-          id THEN name
-          id XOR name
-        }: User
-      }
-    `;
-
-    const result = parse(schema);
-
-    expect(toJSONDeep(result)).to.deep.equal({
-      kind: Kind.DOCUMENT,
-      loc: { start: 0, end: 155 },
-      definitions: [
-        {
-          description: undefined,
-          directives: [],
-          fields: [
-            {
-              arguments: [
-                {
-                  defaultValue: undefined,
-                  description: undefined,
-                  directives: [],
-                  kind: Kind.INPUT_VALUE_DEFINITION,
-                  loc: { end: 43, start: 33 },
-                  name: {
-                    kind: Kind.NAME,
-                    loc: { end: 35, start: 33 },
-                    value: 'id',
-                  },
-                  type: {
-                    kind: Kind.NAMED_TYPE,
-                    loc: { end: 43, start: 37 },
-                    name: {
-                      kind: Kind.NAME,
-                      loc: { end: 43, start: 37 },
-                      value: 'String',
-                    },
-                  },
-                },
-                {
-                  defaultValue: undefined,
-                  description: undefined,
-                  directives: [],
-                  kind: Kind.INPUT_VALUE_DEFINITION,
-                  loc: { end: 57, start: 45 },
-                  name: {
-                    kind: Kind.NAME,
-                    loc: { end: 49, start: 45 },
-                    value: 'name',
-                  },
-                  type: {
-                    kind: Kind.NAMED_TYPE,
-                    loc: { end: 57, start: 51 },
-                    name: {
-                      kind: Kind.NAME,
-                      loc: { end: 57, start: 51 },
-                      value: 'String',
-                    },
-                  },
-                },
-              ],
-              constraints: [
-                {
-                  kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 81, start: 70 },
-                  name: {
-                    kind: Kind.NAME,
-                    loc: { end: 76, start: 73 },
-                    value: 'XOR',
-                  },
-                  leftSide: {
-                    kind: Kind.NAME,
-                    loc: { end: 72, start: 70 },
-                    value: 'id',
-                  },
-                  rightSide: {
-                    kind: Kind.NAME,
-                    loc: { end: 81, start: 77 },
-                    value: 'name',
-                  },
-                },
-                {
-                  kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 104, start: 92 },
-                  name: {
-                    kind: Kind.NAME,
-                    loc: { end: 99, start: 95 },
-                    value: 'THEN',
-                  },
-                  leftSide: {
-                    kind: Kind.NAME,
-                    loc: { end: 94, start: 92 },
-                    value: 'id',
-                  },
-                  rightSide: {
-                    kind: Kind.NAME,
-                    loc: { end: 104, start: 100 },
-                    value: 'name',
-                  },
-                },
-                {
-                  kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 126, start: 115 },
-                  name: {
-                    kind: Kind.NAME,
-                    loc: { end: 121, start: 118 },
-                    value: 'XOR',
-                  },
-                  leftSide: {
-                    kind: Kind.NAME,
-                    loc: { end: 117, start: 115 },
-                    value: 'id',
-                  },
-                  rightSide: {
-                    kind: Kind.NAME,
-                    loc: { end: 126, start: 122 },
-                    value: 'name',
-                  },
-                },
-              ],
-              description: undefined,
-              directives: [],
-              kind: Kind.FIELD_DEFINITION,
-              loc: { end: 142, start: 28 },
-              name: {
-                kind: Kind.NAME,
-                loc: { end: 32, start: 28 },
-                value: 'user',
-              },
-              type: {
-                kind: Kind.NAMED_TYPE,
-                loc: { end: 142, start: 138 },
-                name: {
-                  kind: Kind.NAME,
-                  loc: { end: 142, start: 138 },
-                  value: 'User',
-                },
-              },
-            },
-          ],
-          interfaces: [],
-          kind: Kind.OBJECT_TYPE_DEFINITION,
-          loc: { end: 150, start: 7 },
-          name: {
-            kind: Kind.NAME,
-            loc: { end: 17, start: 12 },
-            value: 'Query',
-          },
-        },
-      ],
-    });
-  });
-
-  it('Correctly parses a schema with one interparameter constraint in parenthesis', async () => {
-    const schema = `
-      type Query {
-        user(id: String, name: String){
-          (id XOR name)
+          XOR(id, name)
         }: User
       }
     `;
@@ -352,16 +76,16 @@ describe('Interparameter Constraints Parser Tests', () => {
               constraints: [
                 {
                   kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 82, start: 71 },
-                  name: {
-                    kind: Kind.NAME,
-                    loc: { end: 77, start: 74 },
-                    value: 'XOR',
-                  },
                   leftSide: {
                     kind: Kind.NAME,
-                    loc: { end: 73, start: 71 },
+                    loc: { end: 76, start: 74 },
                     value: 'id',
+                  },
+                  loc: { end: 83, start: 70 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 73, start: 70 },
+                    value: 'XOR',
                   },
                   rightSide: {
                     kind: Kind.NAME,
@@ -403,11 +127,169 @@ describe('Interparameter Constraints Parser Tests', () => {
     });
   });
 
+  it('Correctly parses a schema with multiple interparameter constraints', async () => {
+    const schema = `
+      type Query {
+        user(id: String, name: String){
+          XOR(id, name)
+          THEN(id, name)
+          XOR(id, name)
+        }: User
+      }
+    `;
+
+    const result = parse(schema);
+
+    expect(toJSONDeep(result)).to.deep.equal({
+      kind: Kind.DOCUMENT,
+      loc: { start: 0, end: 161 },
+      definitions: [
+        {
+          description: undefined,
+          directives: [],
+          fields: [
+            {
+              arguments: [
+                {
+                  defaultValue: undefined,
+                  description: undefined,
+                  directives: [],
+                  kind: Kind.INPUT_VALUE_DEFINITION,
+                  loc: { end: 43, start: 33 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 35, start: 33 },
+                    value: 'id',
+                  },
+                  type: {
+                    kind: Kind.NAMED_TYPE,
+                    loc: { end: 43, start: 37 },
+                    name: {
+                      kind: Kind.NAME,
+                      loc: { end: 43, start: 37 },
+                      value: 'String',
+                    },
+                  },
+                },
+                {
+                  defaultValue: undefined,
+                  description: undefined,
+                  directives: [],
+                  kind: Kind.INPUT_VALUE_DEFINITION,
+                  loc: { end: 57, start: 45 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 49, start: 45 },
+                    value: 'name',
+                  },
+                  type: {
+                    kind: Kind.NAMED_TYPE,
+                    loc: { end: 57, start: 51 },
+                    name: {
+                      kind: Kind.NAME,
+                      loc: { end: 57, start: 51 },
+                      value: 'String',
+                    },
+                  },
+                },
+              ],
+              constraints: [
+                {
+                  kind: Kind.CONSTRAINT_DEFINITION,
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 76, start: 74 },
+                    value: 'id',
+                  },
+                  loc: { end: 83, start: 70 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 73, start: 70 },
+                    value: 'XOR',
+                  },
+                  rightSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 82, start: 78 },
+                    value: 'name',
+                  },
+                },
+                {
+                  kind: Kind.CONSTRAINT_DEFINITION,
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 101, start: 99 },
+                    value: 'id',
+                  },
+                  loc: { end: 108, start: 94 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 98, start: 94 },
+                    value: 'THEN',
+                  },
+                  rightSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 107, start: 103 },
+                    value: 'name',
+                  },
+                },
+                {
+                  kind: Kind.CONSTRAINT_DEFINITION,
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 125, start: 123 },
+                    value: 'id',
+                  },
+                  loc: { end: 132, start: 119 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 122, start: 119 },
+                    value: 'XOR',
+                  },
+                  rightSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 131, start: 127 },
+                    value: 'name',
+                  },
+                },
+              ],
+              description: undefined,
+              directives: [],
+              kind: Kind.FIELD_DEFINITION,
+              loc: { end: 148, start: 28 },
+              name: {
+                kind: Kind.NAME,
+                loc: { end: 32, start: 28 },
+                value: 'user',
+              },
+              type: {
+                kind: Kind.NAMED_TYPE,
+                loc: { end: 148, start: 144 },
+                name: {
+                  kind: Kind.NAME,
+                  loc: { end: 148, start: 144 },
+                  value: 'User',
+                },
+              },
+            },
+          ],
+          interfaces: [],
+          kind: Kind.OBJECT_TYPE_DEFINITION,
+          loc: { end: 156, start: 7 },
+          name: {
+            kind: Kind.NAME,
+            loc: { end: 17, start: 12 },
+            value: 'Query',
+          },
+        },
+      ],
+    });
+  });
+
   it('Correctly parses a schema with a nest leftside interparameter constraint', async () => {
     const schema = `
       type Query {
         user(aa: String, bb: String, ccc: Int){
-          (aa XOR bb) XOR ccc
+          XOR(XOR(aa, bb), ccc)
         }: User
       }
     `;
@@ -560,7 +442,7 @@ describe('Interparameter Constraints Parser Tests', () => {
     const schema = `
       type Query {
         user(aa: String, bb: String, ccc: Int){
-          (aa XOR (bb XOR ccc))
+          XOR(aa, XOR(bb, ccc))
         }: User
       }
     `;
@@ -713,7 +595,7 @@ describe('Interparameter Constraints Parser Tests', () => {
     const schema = `
       type Query {
         user(aa: String, bb: String, ccc: Int, ddd: Int){
-          ((aa XOR bb) THEN (ccc XOR ddd))
+          THEN(XOR(aa, bb), XOR(ccc, ddd))
         }: User
       }
     `;
@@ -887,6 +769,120 @@ describe('Interparameter Constraints Parser Tests', () => {
           interfaces: [],
           kind: Kind.OBJECT_TYPE_DEFINITION,
           loc: { end: 144, start: 7 },
+          name: {
+            kind: Kind.NAME,
+            loc: { end: 17, start: 12 },
+            value: 'Query',
+          },
+        },
+      ],
+    });
+  });
+
+  it('Correctly parses a schema with a NOT-constraint', async () => {
+    const schema = `
+      type Query {
+        user(id: String, name: String){
+          NOT(id)
+        }: User
+      }
+    `;
+
+    const result = parse(schema);
+
+    expect(toJSONDeep(result)).to.deep.equal({
+      kind: Kind.DOCUMENT,
+      loc: { start: 0, end: 110 },
+      definitions: [
+        {
+          description: undefined,
+          directives: [],
+          fields: [
+            {
+              arguments: [
+                {
+                  defaultValue: undefined,
+                  description: undefined,
+                  directives: [],
+                  kind: Kind.INPUT_VALUE_DEFINITION,
+                  loc: { end: 43, start: 33 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 35, start: 33 },
+                    value: 'id',
+                  },
+                  type: {
+                    kind: Kind.NAMED_TYPE,
+                    loc: { end: 43, start: 37 },
+                    name: {
+                      kind: Kind.NAME,
+                      loc: { end: 43, start: 37 },
+                      value: 'String',
+                    },
+                  },
+                },
+                {
+                  defaultValue: undefined,
+                  description: undefined,
+                  directives: [],
+                  kind: Kind.INPUT_VALUE_DEFINITION,
+                  loc: { end: 57, start: 45 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 49, start: 45 },
+                    value: 'name',
+                  },
+                  type: {
+                    kind: Kind.NAMED_TYPE,
+                    loc: { end: 57, start: 51 },
+                    name: {
+                      kind: Kind.NAME,
+                      loc: { end: 57, start: 51 },
+                      value: 'String',
+                    },
+                  },
+                },
+              ],
+              constraints: [
+                {
+                  kind: Kind.CONSTRAINT_DEFINITION,
+                  loc: { end: 81, start: 70 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 73, start: 70 },
+                    value: 'NOT',
+                  },
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 76, start: 74 },
+                    value: 'id',
+                  },
+                  rightSide: {},
+                },
+              ],
+              description: undefined,
+              directives: [],
+              kind: Kind.FIELD_DEFINITION,
+              loc: { end: 97, start: 28 },
+              name: {
+                kind: Kind.NAME,
+                loc: { end: 32, start: 28 },
+                value: 'user',
+              },
+              type: {
+                kind: Kind.NAMED_TYPE,
+                loc: { end: 97, start: 93 },
+                name: {
+                  kind: Kind.NAME,
+                  loc: { end: 97, start: 93 },
+                  value: 'User',
+                },
+              },
+            },
+          ],
+          interfaces: [],
+          kind: Kind.OBJECT_TYPE_DEFINITION,
+          loc: { end: 105, start: 7 },
           name: {
             kind: Kind.NAME,
             loc: { end: 17, start: 12 },
