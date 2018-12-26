@@ -39,7 +39,7 @@ import type {
   DirectiveDefinitionNode,
   StringValueNode,
   Location,
-  ConstraintDefinitionNode,
+  ConstraintDefinitionNode, NameNode,
 } from '../language/ast';
 import { isTypeDefinitionNode } from '../language/predicates';
 
@@ -326,16 +326,17 @@ export class ASTDefinitionBuilder {
   buildConstraint(value: ConstraintDefinitionNode): GraphQLConstraintConfig {
     return {
       name: value.name.value,
-      leftSide:
-        value.leftSide.kind === Kind.NAME
-          ? value.leftSide.value
-          : this.buildConstraint(value.leftSide),
+      leftSide: this.buildConstraintSide(value.leftSide),
       rightSide:
-        value.rightSide.kind === Kind.NAME
-          ? value.rightSide.value
-          : this.buildConstraint(value.rightSide),
+        value.rightSide === undefined
+          ? undefined
+          : this.buildConstraintSide(value.rightSide),
       astNode: value,
     };
+  }
+  
+  buildConstraintSide(side: ConstraintDefinitionNode | NameNode){
+    return side.kind === Kind.NAME ? side.value : this.buildConstraint(side);
   }
 
   buildEnumValue(value: EnumValueDefinitionNode): GraphQLEnumValueConfig {

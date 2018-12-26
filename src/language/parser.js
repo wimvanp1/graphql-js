@@ -981,11 +981,18 @@ function parseConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
   const constraintName = parseName(lexer);
 
   // We expect that the name is followed by an opening parenthesis
+  // The expect returns the left parenthesis as token
+  // The token of the lexer will be advanced
   expect(lexer, TokenKind.PAREN_L);
 
   // Now parse the first constraint, which is a name or a new interparameter constraint
   const leftSide = parseNameOrInterparameterConstraint(lexer);
-  const rightSide = parseNameOrInterparameterConstraint(lexer);
+
+  // We verify is the current token to be parsed is a parenthesis
+  // If this is the case, then there is no right side: the constraint only has a left side.
+  const rightSide = peek(lexer, TokenKind.PAREN_R)
+    ? undefined
+    : parseNameOrInterparameterConstraint(lexer);
 
   // Expect that the list of arguments is ended by a closing parenthesis
   expect(lexer, TokenKind.PAREN_R);
@@ -1002,17 +1009,11 @@ function parseConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
 function parseNameOrInterparameterConstraint(
   lexer: Lexer<*>,
 ): NameNode | ConstraintDefinitionNode {
-  // We look ahead, because the parse constraint function will also parse the name
-  // If we would parse here direclty, that parse function will not see the operator name
-  const name = lexer.lookahead();
-
-  console.log('parsing name/interparam:');
-  // console.log(name);
-  console.log(name.value);
+  // The current token of the lexer needs to be parsed
+  const name = lexer.token;
 
   // Check if this name is an interparameter constraint
   if (name.value && isInterparameterConstraintOperator(name.value)) {
-    console.log('***Discovered interparam***');
     // Call the correct function to parse the constraint definition
     return parseConstraintDef(lexer);
   }

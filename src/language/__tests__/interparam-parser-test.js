@@ -285,7 +285,7 @@ describe('Interparameter Constraints Parser Tests', () => {
     });
   });
 
-  it('Correctly parses a schema with a nest leftside interparameter constraint', async () => {
+  it('Correctly parses a schema with a nested left-side interparameter constraint', async () => {
     const schema = `
       type Query {
         user(aa: String, bb: String, ccc: Int){
@@ -298,7 +298,7 @@ describe('Interparameter Constraints Parser Tests', () => {
 
     expect(toJSONDeep(result)).to.deep.equal({
       kind: Kind.DOCUMENT,
-      loc: { start: 0, end: 126 },
+      loc: { start: 0, end: 128 },
       definitions: [
         {
           description: undefined,
@@ -373,15 +373,15 @@ describe('Interparameter Constraints Parser Tests', () => {
               constraints: [
                 {
                   kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 97, start: 79 },
+                  loc: { end: 99, start: 78 },
                   name: {
                     kind: Kind.NAME,
-                    loc: { end: 93, start: 90 },
+                    loc: { end: 81, start: 78 },
                     value: 'XOR',
                   },
                   leftSide: {
                     kind: Kind.CONSTRAINT_DEFINITION,
-                    loc: { end: 88, start: 79 },
+                    loc: { end: 93, start: 82 },
                     name: {
                       kind: Kind.NAME,
                       loc: { end: 85, start: 82 },
@@ -389,18 +389,18 @@ describe('Interparameter Constraints Parser Tests', () => {
                     },
                     leftSide: {
                       kind: Kind.NAME,
-                      loc: { end: 81, start: 79 },
+                      loc: { end: 88, start: 86 },
                       value: 'aa',
                     },
                     rightSide: {
                       kind: Kind.NAME,
-                      loc: { end: 88, start: 86 },
+                      loc: { end: 92, start: 90 },
                       value: 'bb',
                     },
                   },
                   rightSide: {
                     kind: Kind.NAME,
-                    loc: { end: 97, start: 94 },
+                    loc: { end: 98, start: 95 },
                     value: 'ccc',
                   },
                 },
@@ -408,7 +408,7 @@ describe('Interparameter Constraints Parser Tests', () => {
               description: undefined,
               directives: [],
               kind: Kind.FIELD_DEFINITION,
-              loc: { end: 113, start: 28 },
+              loc: { end: 115, start: 28 },
               name: {
                 kind: Kind.NAME,
                 loc: { end: 32, start: 28 },
@@ -416,10 +416,10 @@ describe('Interparameter Constraints Parser Tests', () => {
               },
               type: {
                 kind: Kind.NAMED_TYPE,
-                loc: { end: 113, start: 109 },
+                loc: { end: 115, start: 111 },
                 name: {
                   kind: Kind.NAME,
-                  loc: { end: 113, start: 109 },
+                  loc: { end: 115, start: 111 },
                   value: 'User',
                 },
               },
@@ -427,7 +427,7 @@ describe('Interparameter Constraints Parser Tests', () => {
           ],
           interfaces: [],
           kind: Kind.OBJECT_TYPE_DEFINITION,
-          loc: { end: 121, start: 7 },
+          loc: { end: 123, start: 7 },
           name: {
             kind: Kind.NAME,
             loc: { end: 17, start: 12 },
@@ -438,7 +438,7 @@ describe('Interparameter Constraints Parser Tests', () => {
     });
   });
 
-  it('Correctly parses a schema with a nested rightside interparameter constraint', async () => {
+  it('Correctly parses a schema with a nested right-side interparameter constraint', async () => {
     const schema = `
       type Query {
         user(aa: String, bb: String, ccc: Int){
@@ -526,28 +526,28 @@ describe('Interparameter Constraints Parser Tests', () => {
               constraints: [
                 {
                   kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 98, start: 79 },
+                  loc: { end: 99, start: 78 },
                   name: {
                     kind: Kind.NAME,
-                    loc: { end: 85, start: 82 },
+                    loc: { end: 81, start: 78 },
                     value: 'XOR',
                   },
                   leftSide: {
                     kind: Kind.NAME,
-                    loc: { end: 81, start: 79 },
+                    loc: { end: 84, start: 82 },
                     value: 'aa',
                   },
                   rightSide: {
                     kind: Kind.CONSTRAINT_DEFINITION,
-                    loc: { end: 97, start: 87 },
+                    loc: { end: 98, start: 86 },
                     name: {
                       kind: Kind.NAME,
-                      loc: { end: 93, start: 90 },
+                      loc: { end: 89, start: 86 },
                       value: 'XOR',
                     },
                     leftSide: {
                       kind: Kind.NAME,
-                      loc: { end: 89, start: 87 },
+                      loc: { end: 92, start: 90 },
                       value: 'bb',
                     },
                     rightSide: {
@@ -700,15 +700,15 @@ describe('Interparameter Constraints Parser Tests', () => {
               constraints: [
                 {
                   kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 119, start: 90 },
+                  loc: { end: 120, start: 88 },
                   name: {
                     kind: Kind.NAME,
-                    loc: { end: 105, start: 101 },
+                    loc: { end: 92, start: 88 },
                     value: 'THEN',
                   },
                   leftSide: {
                     kind: Kind.CONSTRAINT_DEFINITION,
-                    loc: { end: 99, start: 90 },
+                    loc: { end: 104, start: 93 },
                     name: {
                       kind: Kind.NAME,
                       loc: { end: 96, start: 93 },
@@ -716,26 +716,26 @@ describe('Interparameter Constraints Parser Tests', () => {
                     },
                     leftSide: {
                       kind: Kind.NAME,
-                      loc: { end: 92, start: 90 },
+                      loc: { end: 99, start: 97 },
                       value: 'aa',
                     },
                     rightSide: {
                       kind: Kind.NAME,
-                      loc: { end: 99, start: 97 },
+                      loc: { end: 103, start: 101 },
                       value: 'bb',
                     },
                   },
                   rightSide: {
                     kind: Kind.CONSTRAINT_DEFINITION,
-                    loc: { end: 118, start: 107 },
+                    loc: { end: 119, start: 106 },
                     name: {
                       kind: Kind.NAME,
-                      loc: { end: 114, start: 111 },
+                      loc: { end: 109, start: 106 },
                       value: 'XOR',
                     },
                     leftSide: {
                       kind: Kind.NAME,
-                      loc: { end: 110, start: 107 },
+                      loc: { end: 113, start: 110 },
                       value: 'ccc',
                     },
                     rightSide: {
@@ -792,7 +792,7 @@ describe('Interparameter Constraints Parser Tests', () => {
 
     expect(toJSONDeep(result)).to.deep.equal({
       kind: Kind.DOCUMENT,
-      loc: { start: 0, end: 110 },
+      loc: { start: 0, end: 106 },
       definitions: [
         {
           description: undefined,
@@ -846,7 +846,7 @@ describe('Interparameter Constraints Parser Tests', () => {
               constraints: [
                 {
                   kind: Kind.CONSTRAINT_DEFINITION,
-                  loc: { end: 81, start: 70 },
+                  loc: { end: 77, start: 70 },
                   name: {
                     kind: Kind.NAME,
                     loc: { end: 73, start: 70 },
@@ -857,13 +857,13 @@ describe('Interparameter Constraints Parser Tests', () => {
                     loc: { end: 76, start: 74 },
                     value: 'id',
                   },
-                  rightSide: {},
+                  rightSide: undefined,
                 },
               ],
               description: undefined,
               directives: [],
               kind: Kind.FIELD_DEFINITION,
-              loc: { end: 97, start: 28 },
+              loc: { end: 93, start: 28 },
               name: {
                 kind: Kind.NAME,
                 loc: { end: 32, start: 28 },
@@ -871,10 +871,10 @@ describe('Interparameter Constraints Parser Tests', () => {
               },
               type: {
                 kind: Kind.NAMED_TYPE,
-                loc: { end: 97, start: 93 },
+                loc: { end: 93, start: 89 },
                 name: {
                   kind: Kind.NAME,
-                  loc: { end: 97, start: 93 },
+                  loc: { end: 93, start: 89 },
                   value: 'User',
                 },
               },
@@ -882,7 +882,7 @@ describe('Interparameter Constraints Parser Tests', () => {
           ],
           interfaces: [],
           kind: Kind.OBJECT_TYPE_DEFINITION,
-          loc: { end: 105, start: 7 },
+          loc: { end: 101, start: 7 },
           name: {
             kind: Kind.NAME,
             loc: { end: 17, start: 12 },

@@ -101,7 +101,7 @@ describe('Type System', () => {
     const schema = buildSchema(`
       type Query {
         field(id: ID, name: String, phone: Int, email: String){
-          (id XOR name) THEN (phone XOR email)
+          THEN(XOR(id, name), XOR(phone, email))
         }: String
       }
     `);
@@ -120,7 +120,7 @@ describe('Type System', () => {
       {
         message:
           'Query.field.unknown must be defined as argument to be used in a constraint.',
-        locations: [{ line: 4, column: 13 }],
+        locations: [{ line: 4, column: 11 }],
       },
     ]);
   });
@@ -137,7 +137,7 @@ describe('Type System', () => {
       {
         message:
           'Query.field.unknown must be defined as argument to be used in a constraint.',
-        locations: [{ line: 4, column: 12 }],
+        locations: [{ line: 4, column: 11 }],
       },
     ]);
   });
