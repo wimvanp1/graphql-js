@@ -142,8 +142,7 @@ describe('Type System', () => {
     ]);
   });
 
-  // TODO make this test
-  /* it('accepts valid NOT interparameter constraints', () => {
+  it('accepts valid NOT interparameter constraint definition', () => {
     const schema = buildSchema(`
       type Query {
         field(id: ID, name: String, phone: Int){
@@ -152,8 +151,50 @@ describe('Type System', () => {
       }
     `);
     expect(validateSchema(schema)).to.deep.equal([]);
-  }); */
+  });
 
-  // TODO nested not tests
-  // TODO tests with not in other constraints
+  it('accepts valid nested NOT interparameter constraint definition', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(name: String, phone: Int){
+          NOT(OR(NOT(name), phone))
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([]);
+  });
+
+  it('rejects invalid NOT constraint definition', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, name: String){
+          NOT(unknown)
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([
+      {
+        message:
+          'Query.field.unknown must be defined as argument to be used in a constraint.',
+        locations: [{ line: 4, column: 11 }],
+      },
+    ]);
+  });
+
+  it('rejects an invalid nested NOT constraint definition', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, name: String, phone: String){
+          AND(phone, NOT(unknown))
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([
+      {
+        message:
+          'Query.field.unknown must be defined as argument to be used in a constraint.',
+        locations: [{ line: 4, column: 11 }],
+      },
+    ]);
+  });
 });

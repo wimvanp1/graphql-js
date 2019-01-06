@@ -1169,4 +1169,102 @@ describe('Validate: Interparameterconstraints', () => {
       ],
     );
   });
+
+  it('accepts a basic NOT constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'NOT',
+          leftSide: 'id',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33){
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('accepts a nest NOT constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'AND',
+          leftSide: 'id',
+          rightSide: {
+            name: 'NOT',
+            leftSide: 'age',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 33){
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('recognizes a basic NOT violation', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'NOT',
+          leftSide: 'id',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 3){
+          iq
+        }
+      }
+      `,
+      [interparamViolation('human', { name: 'NOT', leftSide: 'id' }, 3, 9)],
+    );
+  });
+
+  it('recognizes a nested NOT violation', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'AND',
+          leftSide: 'id',
+          rightSide: {
+            name: 'NOT',
+            leftSide: 'age',
+          },
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(id: 3, age: 33){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation('human', { name: 'NOT', leftSide: 'age' }, 3, 9),
+        interparamViolation(
+          'human',
+          {
+            name: 'AND',
+            leftSide: 'id',
+            rightSide: { name: 'NOT', leftSide: 'age' },
+          },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
 });

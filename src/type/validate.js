@@ -380,11 +380,16 @@ function validateFields(
         // TODO validate constraints more
         // TODO validate that the constraint itself is valid
         // TODO low priority: required argument w/ XOR constraint is not allowed
-        // console.log('\nContraint: ');
-        // console.log(constraint);
 
         // Validate that the argument exists (if the constraint is a name)
-        const toBeChecked = [constraint.leftSide, constraint.rightSide];
+        let toBeChecked;
+        if (constraint.name === 'NOT') {
+          // A not constraint has only a left side
+          toBeChecked = [constraint.leftSide];
+        } else {
+          toBeChecked = [constraint.leftSide, constraint.rightSide];
+        }
+
         for (const side of toBeChecked) {
           // If the side that is being examined is a string, then this should represent an argument
           if (typeof side === 'string') {
@@ -395,6 +400,15 @@ function validateFields(
                 constraint.astNode,
               );
             }
+          } else if (
+            // Test if this is a NOT constraint
+            typeof side === 'object' &&
+            side.hasOwnProperty('leftSide') &&
+            (!side.hasOwnProperty('rightSide') ||
+              side.rightSide === undefined) &&
+            side.name === 'NOT'
+          ) {
+            toBeChecked.push(side.leftSide);
           } else if (
             typeof side === 'object' &&
             side.hasOwnProperty('leftSide') &&

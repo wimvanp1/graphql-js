@@ -77,7 +77,7 @@ describe('Schema Builder', () => {
     expect(cycleOutput(body)).to.equal(body);
   });
 
-  it('Handles a field with a WITH contraint', () => {
+  it('Handles a field with a WITH constraint', () => {
     const body = dedent`
       type Query {
         str(i1: Int, i2: Int){
@@ -101,11 +101,11 @@ describe('Schema Builder', () => {
     expect(cycleOutput(body)).to.equal(body);
   });
 
-  it('Handles a field with a WITH contraint', () => {
+  it('Handles a field with a NOT constraint', () => {
     const body = dedent`
       type Query {
         str(i1: Int, i2: Int){
-          OR(i1, i2)
+          NOT(i1)
         }: String
       }
     `;
@@ -113,11 +113,11 @@ describe('Schema Builder', () => {
     expect(cycleOutput(body)).to.equal(body);
   });
 
-  it('Handles a field with nested WITH-interparameter constraints', () => {
+  it('Handles a field with nested NOT-interparameter constraints', () => {
     const body = dedent`
       type Query {
         str(i1: Int, i2: Int, i3: Int){
-          WITH(i1, WITH(i2, i3))
+          NOT(WITH(i2, NOT(i3)))
         }: String
       }
     `;

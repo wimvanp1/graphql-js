@@ -13,6 +13,7 @@ export const InterparameterConstraintOperator = Object.freeze({
   THEN: 'THEN',
   WITH: 'WITH',
   AND: 'AND',
+  NOT: 'NOT',
 });
 
 export function isInterparameterConstraintOperator(name: string) {

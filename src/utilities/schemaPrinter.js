@@ -304,17 +304,8 @@ function printConstraints(options, constraints, indentation = '') {
   return (
     '{\n' +
     constraints
-      .map(
-        constraint =>
-          indentation +
-          '  ' +
-          constraint.name +
-          '(' +
-          printConstraintSide(constraint.leftSide) +
-          ', ' +
-          printConstraintSide(constraint.rightSide) +
-          ')',
-      )
+      // We use the constraint side printer to also print the uppermost constraint, as it is the same as printing one side
+      .map(constraint => indentation + '  ' + printConstraintSide(constraint))
       .join('\n') +
     '\n' +
     indentation +
@@ -325,14 +316,21 @@ function printConstraints(options, constraints, indentation = '') {
 function printConstraintSide(constraintSide) {
   // If the side is a constraint itself: print it
   if (typeof constraintSide === 'object') {
-    return (
-      constraintSide.name +
-      '(' +
-      printConstraintSide(constraintSide.leftSide) +
-      ', ' +
-      printConstraintSide(constraintSide.rightSide) +
-      ')'
-    );
+    let result = constraintSide.name + '(';
+
+    // Add the left side
+    result += printConstraintSide(constraintSide.leftSide);
+
+    // Add the right side (if the constraint has one
+    if (constraintSide.rightSide !== undefined) {
+      result += ', ';
+      result += printConstraintSide(constraintSide.rightSide);
+    }
+
+    // Add closing parenthesis
+    result += ')';
+
+    return result;
   }
 
   return constraintSide;
