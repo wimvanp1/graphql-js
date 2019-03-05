@@ -52,6 +52,7 @@ describe('Introspection', () => {
                 {
                   name: 'onlyField',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'SCALAR',
                     name: 'String',
@@ -82,6 +83,7 @@ describe('Introspection', () => {
                 {
                   name: 'types',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -105,6 +107,7 @@ describe('Introspection', () => {
                 {
                   name: 'queryType',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -120,6 +123,7 @@ describe('Introspection', () => {
                 {
                   name: 'mutationType',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'OBJECT',
                     name: '__Type',
@@ -131,6 +135,7 @@ describe('Introspection', () => {
                 {
                   name: 'subscriptionType',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'OBJECT',
                     name: '__Type',
@@ -142,6 +147,7 @@ describe('Introspection', () => {
                 {
                   name: 'directives',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -175,6 +181,7 @@ describe('Introspection', () => {
                 {
                   name: 'kind',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -190,6 +197,7 @@ describe('Introspection', () => {
                 {
                   name: 'name',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'SCALAR',
                     name: 'String',
@@ -201,6 +209,7 @@ describe('Introspection', () => {
                 {
                   name: 'description',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'SCALAR',
                     name: 'String',
@@ -222,6 +231,7 @@ describe('Introspection', () => {
                       defaultValue: 'false',
                     },
                   ],
+                  constraints: [],
                   type: {
                     kind: 'LIST',
                     name: null,
@@ -241,6 +251,7 @@ describe('Introspection', () => {
                 {
                   name: 'interfaces',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'LIST',
                     name: null,
@@ -260,6 +271,7 @@ describe('Introspection', () => {
                 {
                   name: 'possibleTypes',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'LIST',
                     name: null,
@@ -289,6 +301,7 @@ describe('Introspection', () => {
                       defaultValue: 'false',
                     },
                   ],
+                  constraints: [],
                   type: {
                     kind: 'LIST',
                     name: null,
@@ -308,6 +321,7 @@ describe('Introspection', () => {
                 {
                   name: 'inputFields',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'LIST',
                     name: null,
@@ -327,6 +341,7 @@ describe('Introspection', () => {
                 {
                   name: 'ofType',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'OBJECT',
                     name: '__Type',
@@ -407,6 +422,7 @@ describe('Introspection', () => {
                 {
                   name: 'name',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -422,6 +438,7 @@ describe('Introspection', () => {
                 {
                   name: 'description',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'SCALAR',
                     name: 'String',
@@ -433,6 +450,7 @@ describe('Introspection', () => {
                 {
                   name: 'args',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -454,8 +472,25 @@ describe('Introspection', () => {
                   deprecationReason: null,
                 },
                 {
+                  name: 'constraints',
+                  args: [],
+                  constraints: [],
+                  type: {
+                    kind: 'LIST',
+                    name: null,
+                    ofType: {
+                      kind: 'OBJECT',
+                      name: '__GraphQLConstraint',
+                      ofType: null,
+                    },
+                  },
+                  isDeprecated: false,
+                  deprecationReason: null,
+                },
+                {
                   name: 'type',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -471,6 +506,7 @@ describe('Introspection', () => {
                 {
                   name: 'isDeprecated',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -486,6 +522,7 @@ describe('Introspection', () => {
                 {
                   name: 'deprecationReason',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'SCALAR',
                     name: 'String',
@@ -507,6 +544,7 @@ describe('Introspection', () => {
                 {
                   name: 'name',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -522,6 +560,7 @@ describe('Introspection', () => {
                 {
                   name: 'description',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'SCALAR',
                     name: 'String',
@@ -533,6 +572,7 @@ describe('Introspection', () => {
                 {
                   name: 'type',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -548,6 +588,95 @@ describe('Introspection', () => {
                 {
                   name: 'defaultValue',
                   args: [],
+                  constraints: [],
+                  type: {
+                    kind: 'SCALAR',
+                    name: 'String',
+                    ofType: null,
+                  },
+                  isDeprecated: false,
+                  deprecationReason: null,
+                },
+              ],
+              inputFields: null,
+              interfaces: [],
+              enumValues: null,
+              possibleTypes: null,
+            },
+            {
+              kind: 'OBJECT',
+              name: '__GraphQLConstraint',
+              fields: [
+                {
+                  name: 'name',
+                  args: [],
+                  constraints: [],
+                  type: {
+                    kind: 'NON_NULL',
+                    name: null,
+                    ofType: {
+                      kind: 'SCALAR',
+                      name: 'String',
+                      ofType: null,
+                    },
+                  },
+                  isDeprecated: false,
+                  deprecationReason: null,
+                },
+                {
+                  name: 'leftSide',
+                  args: [],
+                  constraints: [],
+                  type: {
+                    kind: 'NON_NULL',
+                    name: null,
+                    ofType: {
+                      kind: 'OBJECT',
+                      name: '__GraphQLConstraintSide',
+                      ofType: null,
+                    },
+                  },
+                  isDeprecated: false,
+                  deprecationReason: null,
+                },
+                {
+                  name: 'rightSide',
+                  args: [],
+                  constraints: [],
+                  type: {
+                    kind: 'OBJECT',
+                    name: '__GraphQLConstraintSide',
+                    ofType: null,
+                  },
+                  isDeprecated: false,
+                  deprecationReason: null,
+                },
+              ],
+              inputFields: null,
+              interfaces: [],
+              enumValues: null,
+              possibleTypes: null,
+            },
+            {
+              kind: 'OBJECT',
+              name: '__GraphQLConstraintSide',
+              fields: [
+                {
+                  name: 'constraint',
+                  args: [],
+                  constraints: [],
+                  type: {
+                    kind: 'OBJECT',
+                    name: '__GraphQLConstraint',
+                    ofType: null,
+                  },
+                  isDeprecated: false,
+                  deprecationReason: null,
+                },
+                {
+                  name: 'value',
+                  args: [],
+                  constraints: [],
                   type: {
                     kind: 'SCALAR',
                     name: 'String',
@@ -569,6 +698,7 @@ describe('Introspection', () => {
                 {
                   name: 'name',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -584,6 +714,7 @@ describe('Introspection', () => {
                 {
                   name: 'description',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'SCALAR',
                     name: 'String',
@@ -595,6 +726,7 @@ describe('Introspection', () => {
                 {
                   name: 'isDeprecated',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -610,6 +742,7 @@ describe('Introspection', () => {
                 {
                   name: 'deprecationReason',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'SCALAR',
                     name: 'String',
@@ -631,6 +764,7 @@ describe('Introspection', () => {
                 {
                   name: 'name',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -646,6 +780,7 @@ describe('Introspection', () => {
                 {
                   name: 'description',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'SCALAR',
                     name: 'String',
@@ -657,6 +792,7 @@ describe('Introspection', () => {
                 {
                   name: 'locations',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,
@@ -680,6 +816,7 @@ describe('Introspection', () => {
                 {
                   name: 'args',
                   args: [],
+                  constraints: [],
                   type: {
                     kind: 'NON_NULL',
                     name: null,

@@ -64,6 +64,12 @@ describe('Star Wars Introspection Tests', () => {
               name: '__InputValue',
             },
             {
+              name: '__GraphQLConstraint',
+            },
+            {
+              name: '__GraphQLConstraintSide',
+            },
+            {
               name: '__EnumValue',
             },
             {

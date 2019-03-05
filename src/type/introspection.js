@@ -309,6 +309,10 @@ export const __Field = new GraphQLObjectType({
       type: GraphQLNonNull(GraphQLList(GraphQLNonNull(__InputValue))),
       resolve: field => field.args || [],
     },
+    constraints: {
+      type: GraphQLList(__GraphQLConstraint),
+      resolve: field => field.constraints || [],
+    },
     type: {
       type: GraphQLNonNull(__Type),
       resolve: obj => obj.type,
@@ -441,6 +445,48 @@ export const __TypeKind = new GraphQLEnumType({
   },
 });
 
+// Represents a constraint that is being exported
+export const __GraphQLConstraint = new GraphQLObjectType({
+  name: '__GraphQLConstraint',
+  description:
+    'Fields can have constraints posed on their parameters. ' +
+    'These are described by a GraphQL Constraint.',
+  fields: () => ({
+    name: {
+      type: GraphQLNonNull(GraphQLString),
+      resolve: constraint => constraint.name,
+    },
+    leftSide: {
+      type: GraphQLNonNull(__GraphQLConstraintSide),
+      resolve: constraint => constraint.leftSide,
+    },
+    rightSide: {
+      type: __GraphQLConstraintSide,
+      resolve: constraint => constraint.rightSide,
+    },
+  }),
+});
+
+// Represents one side of a constraint that is being exported
+export const __GraphQLConstraintSide = new GraphQLObjectType({
+  name: '__GraphQLConstraintSide',
+  description:
+    'Encodes one side of an interparameter constraint. ' +
+    'A side can be the name of a parameter or a constraint itself.',
+  fields: () => ({
+    constraint: {
+      type: __GraphQLConstraint,
+      resolve: constraintSide =>
+        typeof constraintSide !== 'string' ? constraintSide : null,
+    },
+    value: {
+      type: GraphQLString,
+      resolve: constraintSide =>
+        typeof constraintSide === 'string' ? constraintSide : null,
+    },
+  }),
+});
+
 /**
  * Note that these are GraphQLField and not GraphQLFieldConfig,
  * so the format for args is different.
@@ -479,6 +525,8 @@ export const introspectionTypes: $ReadOnlyArray<*> = [
   __InputValue,
   __EnumValue,
   __TypeKind,
+  __GraphQLConstraint,
+  __GraphQLConstraintSide,
 ];
 
 export function isIntrospectionType(type: mixed): boolean %checks {
@@ -493,6 +541,8 @@ export function isIntrospectionType(type: mixed): boolean %checks {
       type.name === __Field.name ||
       type.name === __InputValue.name ||
       type.name === __EnumValue.name ||
-      type.name === __TypeKind.name)
+      type.name === __TypeKind.name ||
+      type.name === __GraphQLConstraint.name ||
+      type.name === __GraphQLConstraintSide.name)
   );
 }
