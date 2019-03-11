@@ -38,6 +38,7 @@ import {
 // what was returned by the server.
 function testSchema(serverSchema) {
   const initialIntrospection = introspectionFromSchema(serverSchema);
+  // console.log(JSON.stringify(initialIntrospection));
   const clientSchema = buildClientSchema(initialIntrospection);
   const secondIntrospection = introspectionFromSchema(clientSchema);
   expect(secondIntrospection).to.deep.equal(initialIntrospection);

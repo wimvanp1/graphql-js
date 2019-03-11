@@ -47,6 +47,15 @@ export function getIntrospectionQuery(options?: IntrospectionOptions): string {
         args {
           ...InputValue
         }
+        constraints {
+          name
+          leftSide {
+            ...ConstraintSide
+          }
+          rightSide {
+            ...ConstraintSide
+          }
+        }
         type {
           ...TypeRef
         }
@@ -75,6 +84,32 @@ export function getIntrospectionQuery(options?: IntrospectionOptions): string {
       ${descriptions ? 'description' : ''}
       type { ...TypeRef }
       defaultValue
+    }
+    
+    fragment ConstraintSide on __GraphQLConstraintSide {
+      constraint {
+        name
+        leftSide {
+          ...ConstraintSide2
+        }
+        rightSide {
+          ...ConstraintSide2
+        }
+      }
+      value
+    }
+    
+    fragment ConstraintSide2 on __GraphQLConstraintSide {
+      constraint {
+        name
+        leftSide {
+          value
+        }
+        rightSide {
+          value
+        }
+      }
+      value
     }
 
     fragment TypeRef on __Type {
@@ -249,6 +284,7 @@ export type IntrospectionField = {|
   +name: string,
   +description?: ?string,
   +args: $ReadOnlyArray<IntrospectionInputValue>,
+  +constraints: $ReadOnlyArray<IntrospectionConstraint>,
   +type: IntrospectionOutputTypeRef,
   +isDeprecated: boolean,
   +deprecationReason: ?string,
@@ -259,6 +295,17 @@ export type IntrospectionInputValue = {|
   +description?: ?string,
   +type: IntrospectionInputTypeRef,
   +defaultValue: ?string,
+|};
+
+export type IntrospectionConstraint = {|
+  +name: string,
+  +leftSide: IntrospectionConstraintSide,
+  +rightSide: ?IntrospectionConstraintSide,
+|};
+
+export type IntrospectionConstraintSide = {|
+  +constraint: ?IntrospectionConstraint,
+  +value: ?string,
 |};
 
 export type IntrospectionEnumValue = {|

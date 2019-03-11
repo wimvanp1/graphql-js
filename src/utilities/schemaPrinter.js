@@ -322,7 +322,7 @@ function printConstraintSide(constraintSide) {
     result += printConstraintSide(constraintSide.leftSide);
 
     // Add the right side (if the constraint has one
-    if (constraintSide.rightSide !== undefined) {
+    if (constraintSide.rightSide) {
       result += ', ';
       result += printConstraintSide(constraintSide.rightSide);
     }

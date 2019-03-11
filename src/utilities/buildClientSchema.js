@@ -312,6 +312,9 @@ export function buildClientSchema(
           deprecationReason: fieldIntrospection.deprecationReason,
           type: getOutputType(fieldIntrospection.type),
           args: buildInputValueDefMap(fieldIntrospection.args),
+          constraints: fieldIntrospection.constraints
+            ? fieldIntrospection.constraints.map(buildConstraintDef)
+            : [],
         };
       },
     );
@@ -335,6 +338,22 @@ export function buildClientSchema(
       type,
       defaultValue,
     };
+  }
+
+  function buildConstraintDef(constraintIntrospection) {
+    return {
+      name: constraintIntrospection.name,
+      leftSide: buildConstraintSide(constraintIntrospection.leftSide),
+      rightSide: constraintIntrospection.rightSide
+        ? buildConstraintSide(constraintIntrospection.rightSide)
+        : null,
+    };
+  }
+
+  function buildConstraintSide(constraintSide) {
+    return constraintSide.constraint
+      ? buildConstraintDef(constraintSide.constraint)
+      : constraintSide.value;
   }
 
   function buildDirective(directiveIntrospection) {

@@ -742,9 +742,27 @@ describe('Type System Printer', () => {
         name: String!
         description: String
         args: [__InputValue!]!
+        constraints: [__GraphQLConstraint]
         type: __Type!
         isDeprecated: Boolean!
         deprecationReason: String
+      }
+      
+      """
+      Fields can have constraints posed on their parameters. These are described by a GraphQL Constraint.
+      """
+      type __GraphQLConstraint {
+        name: String!
+        leftSide: __GraphQLConstraintSide!
+        rightSide: __GraphQLConstraintSide
+      }
+      
+      """
+      Encodes one side of an interparameter constraint. A side can be the name of a parameter or a constraint itself.
+      """
+      type __GraphQLConstraintSide {
+        constraint: __GraphQLConstraint
+        value: String
       }
 
       """
@@ -969,9 +987,23 @@ describe('Type System Printer', () => {
         name: String!
         description: String
         args: [__InputValue!]!
+        constraints: [__GraphQLConstraint]
         type: __Type!
         isDeprecated: Boolean!
         deprecationReason: String
+      }
+      
+      # Fields can have constraints posed on their parameters. These are described by a GraphQL Constraint.
+      type __GraphQLConstraint {
+        name: String!
+        leftSide: __GraphQLConstraintSide!
+        rightSide: __GraphQLConstraintSide
+      }
+      
+      # Encodes one side of an interparameter constraint. A side can be the name of a parameter or a constraint itself.
+      type __GraphQLConstraintSide {
+        constraint: __GraphQLConstraint
+        value: String
       }
 
       # Arguments provided to Fields or Directives and the input fields of an
