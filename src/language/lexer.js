@@ -121,6 +121,8 @@ export const TokenKind = Object.freeze({
   STRING: 'String',
   BLOCK_STRING: 'BlockString',
   COMMENT: 'Comment',
+  LT: '<',
+  GT: '>',
 });
 
 /**
@@ -238,9 +240,15 @@ function readToken(lexer: Lexer<*>, prev: Token): Token {
     // :
     case 58:
       return new Tok(TokenKind.COLON, pos, pos + 1, line, col, prev);
+    // <
+    case 60:
+      return new Tok(TokenKind.LT, pos, pos + 1, line, col, prev);
     // =
     case 61:
       return new Tok(TokenKind.EQUALS, pos, pos + 1, line, col, prev);
+    // >
+    case 62:
+      return new Tok(TokenKind.GT, pos, pos + 1, line, col, prev);
     // @
     case 64:
       return new Tok(TokenKind.AT, pos, pos + 1, line, col, prev);
