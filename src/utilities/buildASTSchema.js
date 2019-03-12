@@ -39,7 +39,7 @@ import type {
   DirectiveDefinitionNode,
   StringValueNode,
   Location,
-  ConstraintDefinitionNode, NameNode,
+  ConstraintDefinitionNode, NameNode, IntValueNode,
 } from '../language/ast';
 import { isTypeDefinitionNode } from '../language/predicates';
 
@@ -78,6 +78,7 @@ import { specifiedScalarTypes } from '../type/scalars';
 
 import { GraphQLSchema } from '../type/schema';
 import type { GraphQLSchemaValidationOptions } from '../type/schema';
+import type { FloatValueNode, ValueNode } from '../language';
 
 export type BuildSchemaOptions = {
   ...GraphQLSchemaValidationOptions,
@@ -334,9 +335,13 @@ export class ASTDefinitionBuilder {
       astNode: value,
     };
   }
-  
-  buildConstraintSide(side: ConstraintDefinitionNode | NameNode){
-    return side.kind === Kind.NAME ? side.value : this.buildConstraint(side);
+
+  buildConstraintSide(
+    side: ConstraintDefinitionNode | NameNode | IntValueNode | FloatValueNode,
+  ) {
+    return side.kind === Kind.CONSTRAINT_DEFINITION
+      ? this.buildConstraint(side)
+      : String(side.value);
   }
 
   buildEnumValue(value: EnumValueDefinitionNode): GraphQLEnumValueConfig {

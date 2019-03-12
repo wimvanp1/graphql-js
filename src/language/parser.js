@@ -973,10 +973,25 @@ function parseConstraintsDefs(
 }
 
 /**
+ * Splits the normal constraints from the value constraints.
+ * Value constraints cannot contain any nested constraints.
+ * @param lexer
+ */
+function parseConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
+  // A normal constraint starts with a NAME token
+  if (peek(lexer, TokenKind.NAME)) {
+    return parseNormalConstraintDef(lexer);
+  }
+
+  // A value constraint starts with a greater/smaller than or equals sign
+  return parseValueConstraintDef(lexer);
+}
+
+/**
  * ConstraintDefinition : LogicOperator (Argument1 [, Argument2])
  * Each argument can be another constraint definition
  */
-function parseConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
+function parseNormalConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
   const start = lexer.token;
   const constraintName = parseName(lexer);
 
@@ -1006,6 +1021,105 @@ function parseConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
   };
 }
 
+/**
+ * Parses a constraint on the value of a parameter.
+ * Further nesting is not allowed.
+ * @param lexer
+ * @returns ConstraintDefinitionNode
+ */
+function parseValueConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
+  /**
+   * Parses a "name", which does consists of logical symbols.
+   * @param start
+   * @param firstSymbol
+   * @returns NameNode
+   */
+  function parseLtGtLteGte(start: Token, firstSymbol: string) {
+    if (peek(lexer, TokenKind.EQUALS)) {
+      // Skip the token
+      expect(lexer, TokenKind.EQUALS);
+      return {
+        kind: Kind.NAME,
+        value: firstSymbol + '=',
+        loc: loc(lexer, start),
+      };
+    }
+
+    // No other symbol for the name
+    return {
+      kind: Kind.NAME,
+      value: firstSymbol,
+      loc: loc(lexer, start),
+    };
+  }
+
+  const start = lexer.token;
+  let constraintName;
+
+  // Parse the name of the constraint
+  if (peek(lexer, TokenKind.LT)) {
+    expect(lexer, TokenKind.LT);
+    constraintName = parseLtGtLteGte(start, '<');
+  } else if (peek(lexer, TokenKind.GT)) {
+    expect(lexer, TokenKind.GT);
+    constraintName = parseLtGtLteGte(start, '>');
+  } else {
+    // The '=' token is required now.
+    expect(lexer, TokenKind.EQUALS);
+    constraintName = {
+      kind: Kind.NAME,
+      value: '=',
+      loc: loc(lexer, start),
+    };
+  }
+
+  // We expect that the name is followed by an opening parenthesis
+  // The expect returns the left parenthesis as token
+  // The token of the lexer will be advanced
+  expect(lexer, TokenKind.PAREN_L);
+
+  // Now parse the first constraint, which is a name of a parameter
+  const leftSide = parseName(lexer);
+
+  let rightSide;
+
+  if (peek(lexer, TokenKind.INT)) {
+    const token = lexer.token;
+    // We have parsed the token: advance
+    lexer.advance();
+
+    rightSide = {
+      kind: Kind.INT,
+      value: ((token.value: any): string),
+      loc: loc(lexer, token),
+    };
+  } else if (peek(lexer, TokenKind.FLOAT)) {
+    const token = lexer.token;
+    // We have parsed the token: advance
+    lexer.advance();
+
+    rightSide = {
+      kind: Kind.FLOAT,
+      value: ((token.value: any): string),
+      loc: loc(lexer, token),
+    };
+  } else {
+    // Constraints can only have numeric values
+    throw unexpected(lexer);
+  }
+
+  // Expect that the list of arguments is ended by a closing parenthesis
+  expect(lexer, TokenKind.PAREN_R);
+
+  return {
+    kind: Kind.CONSTRAINT_DEFINITION,
+    name: constraintName,
+    leftSide,
+    rightSide,
+    loc: loc(lexer, start),
+  };
+}
+
 function parseNameOrInterparameterConstraint(
   lexer: Lexer<*>,
 ): NameNode | ConstraintDefinitionNode {
@@ -1020,6 +1134,7 @@ function parseNameOrInterparameterConstraint(
 
   // Other scenario: it should be a name
   // We directly parse it, because we should return a name node
+  // This name is the name of a parameter!
   return parseName(lexer);
 }
 

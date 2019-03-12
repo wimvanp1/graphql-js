@@ -892,4 +892,101 @@ describe('Interparameter Constraints Parser Tests', () => {
       ],
     });
   });
+
+  it('Correctly parses a schema with one value constraint', async () => {
+    const schema = `
+      type Query {
+        user(id: Int){
+          >(id, 0)
+        }: User
+      }
+    `;
+
+    const result = parse(schema);
+
+    expect(toJSONDeep(result)).to.deep.equal({
+      kind: Kind.DOCUMENT,
+      loc: { start: 0, end: 90 },
+      definitions: [
+        {
+          description: undefined,
+          directives: [],
+          fields: [
+            {
+              arguments: [
+                {
+                  defaultValue: undefined,
+                  description: undefined,
+                  directives: [],
+                  kind: Kind.INPUT_VALUE_DEFINITION,
+                  loc: { end: 40, start: 33 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 35, start: 33 },
+                    value: 'id',
+                  },
+                  type: {
+                    kind: Kind.NAMED_TYPE,
+                    loc: { end: 40, start: 37 },
+                    name: {
+                      kind: Kind.NAME,
+                      loc: { end: 40, start: 37 },
+                      value: 'Int',
+                    },
+                  },
+                },
+              ],
+              constraints: [
+                {
+                  kind: Kind.CONSTRAINT_DEFINITION,
+                  leftSide: {
+                    kind: Kind.NAME,
+                    loc: { end: 57, start: 55 },
+                    value: 'id',
+                  },
+                  loc: { end: 61, start: 53 },
+                  name: {
+                    kind: Kind.NAME,
+                    loc: { end: 54, start: 53 },
+                    value: '>',
+                  },
+                  rightSide: {
+                    kind: Kind.INT,
+                    loc: { end: 60, start: 59 },
+                    value: '0',
+                  },
+                },
+              ],
+              description: undefined,
+              directives: [],
+              kind: Kind.FIELD_DEFINITION,
+              loc: { end: 77, start: 28 },
+              name: {
+                kind: Kind.NAME,
+                loc: { end: 32, start: 28 },
+                value: 'user',
+              },
+              type: {
+                kind: Kind.NAMED_TYPE,
+                loc: { end: 77, start: 73 },
+                name: {
+                  kind: Kind.NAME,
+                  loc: { end: 77, start: 73 },
+                  value: 'User',
+                },
+              },
+            },
+          ],
+          interfaces: [],
+          kind: Kind.OBJECT_TYPE_DEFINITION,
+          loc: { end: 85, start: 7 },
+          name: {
+            kind: Kind.NAME,
+            loc: { end: 17, start: 12 },
+            value: 'Query',
+          },
+        },
+      ],
+    });
+  });
 });

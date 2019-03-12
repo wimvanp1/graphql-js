@@ -464,7 +464,11 @@ export type ConstraintDefinitionNode = {
   +loc?: Location,
   +name: NameNode,
   +leftSide: NameNode | ConstraintDefinitionNode,
-  +rightSide?: NameNode | ConstraintDefinitionNode,
+  +rightSide?:
+    | NameNode
+    | ConstraintDefinitionNode
+    | IntValueNode
+    | FloatValueNode,
 };
 
 export type InterfaceTypeDefinitionNode = {
