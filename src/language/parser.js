@@ -67,7 +67,10 @@ import type {
 
 import { Kind } from './kinds';
 import { DirectiveLocation } from './directiveLocation';
-import { isInterparameterConstraintOperator } from './interparameterConstraint';
+import {
+  isInterparameterConstraintOperator,
+  isInterparameterValueConstraintOperator,
+} from './interparameterConstraint';
 
 /**
  * Configuration options to control parser behavior
@@ -983,7 +986,7 @@ function parseConstraintDef(lexer: Lexer<*>): ConstraintDefinitionNode {
     return parseNormalConstraintDef(lexer);
   }
 
-  // A value constraint starts with a greater/smaller than or equals sign
+  // A value constraint starts with a greater/smaller than or equals sign (which is not a NAME token)
   return parseValueConstraintDef(lexer);
 }
 
@@ -1127,7 +1130,10 @@ function parseNameOrInterparameterConstraint(
   const name = lexer.token;
 
   // Check if this name is an interparameter constraint
-  if (name.value && isInterparameterConstraintOperator(name.value)) {
+  if (
+    (name.value && isInterparameterConstraintOperator(name.value)) ||
+    isInterparameterValueConstraintOperator(name.kind)
+  ) {
     // Call the correct function to parse the constraint definition
     return parseConstraintDef(lexer);
   }
