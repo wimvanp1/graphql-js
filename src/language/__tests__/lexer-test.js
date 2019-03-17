@@ -612,6 +612,20 @@ describe('Lexer', () => {
       value: undefined,
     });
 
+    expect(lexOne('>')).to.contain({
+      kind: TokenKind.GT,
+      start: 0,
+      end: 1,
+      value: undefined,
+    });
+
+    expect(lexOne('<')).to.contain({
+      kind: TokenKind.LT,
+      start: 0,
+      end: 1,
+      value: undefined,
+    });
+
     expect(lexOne('@')).to.contain({
       kind: TokenKind.AT,
       start: 0,
