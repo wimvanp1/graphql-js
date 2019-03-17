@@ -24,6 +24,7 @@ import type {
   GraphQLUnionType,
   GraphQLEnumType,
   GraphQLInputObjectType,
+  GraphQLConstraintConfig,
 } from './definition';
 import { isDirective } from './directives';
 import type { GraphQLDirective } from './directives';
@@ -44,6 +45,7 @@ import type {
 } from '../language/ast';
 import { isValidNameError } from '../utilities/assertValidName';
 import { isEqualType, isTypeSubTypeOf } from '../utilities/typeComparators';
+import { isInterparameterValueConstraintOperator } from '../language/interparameterConstraint';
 
 /*
  * This file only validates the schema
@@ -347,7 +349,9 @@ function validateFields(
     // Ensure the arguments are valid
     // An object is kept with the names of the arguments that have been encountered.
     // Every argument is added with its name as key and true as value.
-    const argNames = Object.create(null);
+    // const argNames = Object.create(null);
+    // const argNames = [];
+    const argNames = {};
     for (const arg of field.args) {
       const argName = arg.name;
 
@@ -382,10 +386,20 @@ function validateFields(
         // TODO low priority: required argument w/ XOR constraint is not allowed
 
         // Validate that the argument exists (if the constraint is a name)
-        let toBeChecked;
+        let toBeChecked = [];
         if (constraint.name === 'NOT') {
           // A not constraint has only a left side
           toBeChecked = [constraint.leftSide];
+        } else if (isInterparameterValueConstraintOperator(constraint.name)) {
+          validateValueDependentConstraint(
+            context,
+            constraint,
+            argNames,
+            type.name,
+            field.name,
+          );
+          // End checking, because further nesting is not allowed
+          continue;
         } else {
           toBeChecked = [constraint.leftSide, constraint.rightSide];
         }
@@ -410,10 +424,19 @@ function validateFields(
           ) {
             toBeChecked.push(side.leftSide);
           } else if (
-            typeof side === 'object' &&
-            side.hasOwnProperty('leftSide') &&
-            side.hasOwnProperty('rightSide')
+            // Test if this is a value constraint
+            isNestedConstraint(side) &&
+            isInterparameterValueConstraintOperator(side.name)
           ) {
+            validateValueDependentConstraint(
+              context,
+              side,
+              argNames,
+              type.name,
+              field.name,
+            );
+            // We do not add sides to be checked because further nesting is not allowed
+          } else if (isNestedConstraint(side)) {
             // Otherwise, this side is a constraint itself and needs to be checked as well
             toBeChecked.push(side.leftSide);
             toBeChecked.push(side.rightSide);
@@ -428,6 +451,43 @@ function validateFields(
         }
       }
     }
+  }
+}
+
+function isNestedConstraint(side: GraphQLConstraintConfig): boolean {
+  return (
+    typeof side === 'object' &&
+    side.hasOwnProperty('leftSide') &&
+    side.hasOwnProperty('rightSide')
+  );
+}
+
+function validateValueDependentConstraint(
+  context: SchemaValidationContext,
+  constraint: GraphQLConstraintConfig,
+  argNames: { [key: string]: boolean },
+  typeName: string,
+  fieldName: string,
+): void {
+  // Require left side to be a valid name of an argument.
+  if (
+    typeof constraint.leftSide !== 'string' ||
+    !argNames[constraint.leftSide]
+  ) {
+    context.reportError(
+      `The left side of ${typeName}.${fieldName}.${constraint.name} ` +
+        `must be defined as argument to be used in a value constraint.`,
+      constraint.astNode,
+    );
+  }
+
+  // Check right side to be a valid value
+  if (isNaN(constraint.rightSide)) {
+    context.reportError(
+      `The right side of  ${typeName}.${fieldName}.${constraint.name} ` +
+        `must be a numeric value.`,
+      constraint.astNode,
+    );
   }
 }
 
