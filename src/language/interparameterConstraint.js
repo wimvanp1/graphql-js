@@ -16,6 +16,20 @@ export const InterparameterConstraintOperator = Object.freeze({
   NOT: 'NOT',
 });
 
+export const InterparameterValueConstraintOperator = Object.freeze({
+  GT: '>',
+  LT: '<',
+  GTE: '>=',
+  LTE: '<=',
+  E: '=',
+});
+
 export function isInterparameterConstraintOperator(name: string) {
   return InterparameterConstraintOperator.hasOwnProperty(name);
+}
+
+export function isInterparameterValueConstraintOperator(symbol: string) {
+  return (
+    Object.values(InterparameterValueConstraintOperator).indexOf(symbol) > -1
+  );
 }
