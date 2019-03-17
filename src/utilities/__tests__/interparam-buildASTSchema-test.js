@@ -124,4 +124,28 @@ describe('Schema Builder', () => {
 
     expect(cycleOutput(body)).to.equal(body);
   });
+
+  it('Handles a field with a value constraint', () => {
+    const body = dedent`
+      type Query {
+        str(i1: Int, i2: Int, i3: Int){
+          >(i1, 3)
+        }: String
+      }
+    `;
+
+    expect(cycleOutput(body)).to.equal(body);
+  });
+
+  it('Handles a field with a nested value constraint', () => {
+    const body = dedent`
+      type Query {
+        str(i1: Int, i2: Int, i3: Int){
+          THEN(i3, >(i1, 3))
+        }: String
+      }
+    `;
+
+    expect(cycleOutput(body)).to.equal(body);
+  });
 });

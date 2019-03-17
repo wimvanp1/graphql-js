@@ -197,4 +197,48 @@ describe('Type System', () => {
       },
     ]);
   });
+
+  it('accepts valid value dependent constraint definition', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(postal_code: Int){
+          >=(postal_code, 1000)
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([]);
+  });
+
+  it('rejects invalid named value dependent constraint definition', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(postal_code: Int){
+          >=(unknown, 1000)
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([
+      {
+        message:
+          'The left side of Query.field.>= must be defined as argument to be used in a value constraint.',
+        locations: [{ line: 4, column: 11 }],
+      },
+    ]);
+  });
+
+  it('accepts valid nested value dependent constraint definition', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(postal_code: Int, phone: String){
+          XOR(
+            >=(postal_code, 1000),
+            phone
+          )
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([]);
+  });
+
+  // TODO add incorrectly nested value dependent constraints
 });
