@@ -94,6 +94,7 @@ export type ASTNode =
   | OperationDefinitionNode
   | VariableDefinitionNode
   | ConstraintDefinitionNode
+  | ValueConstraintNode
   | VariableNode
   | SelectionSetNode
   | FieldNode
@@ -464,12 +465,13 @@ export type ConstraintDefinitionNode = {
   +loc?: Location,
   +name: NameNode,
   +leftSide: NameNode | ConstraintDefinitionNode,
-  +rightSide?:
-    | NameNode
-    | ConstraintDefinitionNode
-    | IntValueNode
-    | FloatValueNode,
+  +rightSide?: NameNode | ConstraintDefinitionNode | ValueConstraintNode,
 };
+
+export type ValueConstraintNode =
+  | IntValueNode
+  | FloatValueNode
+  | StringValueNode;
 
 export type InterfaceTypeDefinitionNode = {
   +kind: 'InterfaceTypeDefinition',

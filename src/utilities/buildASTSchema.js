@@ -39,7 +39,7 @@ import type {
   DirectiveDefinitionNode,
   StringValueNode,
   Location,
-  ConstraintDefinitionNode, NameNode, IntValueNode,
+  ConstraintDefinitionNode, NameNode, IntValueNode, ValueConstraintNode,
 } from '../language/ast';
 import { isTypeDefinitionNode } from '../language/predicates';
 
@@ -337,7 +337,7 @@ export class ASTDefinitionBuilder {
   }
 
   buildConstraintSide(
-    side: ConstraintDefinitionNode | NameNode | IntValueNode | FloatValueNode,
+    side: ConstraintDefinitionNode | NameNode | ValueConstraintNode,
   ) {
     return side.kind === Kind.CONSTRAINT_DEFINITION
       ? this.buildConstraint(side)

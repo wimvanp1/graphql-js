@@ -12,6 +12,7 @@ import type { ASTVisitor } from '../../language/visitor';
 import type { GraphQLConstraint } from '../../type';
 import keyValMap from '../../jsutils/keyValMap';
 import { GraphQLError } from '../../error';
+import type { FieldNode } from '../../language';
 
 export function interparameterConstraintViolationMessage(
   constraint: GraphQLConstraint,
@@ -119,6 +120,41 @@ function validateConstraint(
         // The rightSideValidity would be true for a not constraint
         (leftSideValidity: boolean, _): boolean => !leftSideValidity,
       );
+    case '>':
+      return executeValueConstraintValidationWithRule(
+        context,
+        constraint,
+        fieldNode,
+        (fieldValue: number, value: number): boolean => fieldValue > value,
+      );
+    case '>=':
+      return executeValueConstraintValidationWithRule(
+        context,
+        constraint,
+        fieldNode,
+        (fieldValue: number, value: number): boolean => fieldValue >= value,
+      );
+    case '<':
+      return executeValueConstraintValidationWithRule(
+        context,
+        constraint,
+        fieldNode,
+        (fieldValue: number, value: number): boolean => fieldValue < value,
+      );
+    case '<=':
+      return executeValueConstraintValidationWithRule(
+        context,
+        constraint,
+        fieldNode,
+        (fieldValue: number, value: number): boolean => fieldValue <= value,
+      );
+    case '=':
+      return executeValueConstraintValidationWithRule(
+        context,
+        constraint,
+        fieldNode,
+        (fieldValue: number, value: number): boolean => fieldValue === value,
+      );
     default:
       // TODO better error (should not happen)
       // console.log('Unknown Constraint: ' + constraint.name);
@@ -157,9 +193,14 @@ function executeConstraintValidationWithRule(
 
   let rightSideValidity = true;
 
-  // Only validate the validity of the right side if one is given
+  // Only validate the validity of the right side if an argument/constraint is given
   // There is no right side with a not constraint
-  if (constraint.rightSide) {
+  // A value can also be given if this is a value dependent constraint. This case is tested elsewhere.
+  if (
+    constraint.rightSide &&
+    (typeof constraint.rightSide === 'string' ||
+      typeof constraint.rightSide === 'object')
+  ) {
     rightSideValidity =
       typeof constraint.rightSide === 'object'
         ? validateConstraint(context, constraint.rightSide, fieldNode)
@@ -188,10 +229,97 @@ function executeConstraintValidationWithRule(
   return false;
 }
 
+/**
+ * Checks the validity of a value constraint
+ * @param context
+ * @param constraint The constraint to be checked
+ * @param fieldNode The node of the field where the constraint is located
+ * @param isValidFunction (fieldValue: number, value: number): boolean
+ * @returns {boolean}
+ */
+function executeValueConstraintValidationWithRule(
+  context,
+  constraint: GraphQLConstraint,
+  fieldNode,
+  isValidFunction, // (number, number) => boolean)
+): boolean {
+  // TODO remove logs
+  // console.log('Constraint:');
+  // console.log(constraint);
+
+  const args = fieldNodeToArgMap(fieldNode);
+
+  // console.log('Args:');
+  // console.log(args);
+
+  // console.log(leftSideValidity);
+  // console.log(rightSideValidity);
+
+  // Require a right side and
+  // check if the constraint is met using the provided function
+
+  /* console.log(
+    constraint.leftSide +
+      ' && ' +
+      (typeof constraint.leftSide === 'string') +
+      ' && ' +
+      constraint.rightSide +
+      ' && ' +
+      (typeof constraint.rightSide === 'number'),
+  ); */
+
+  if (
+    constraint.leftSide &&
+    typeof constraint.leftSide === 'string' &&
+    constraint.rightSide &&
+    typeof constraint.rightSide === 'number'
+  ) {
+    const paramName: string = constraint.leftSide;
+    const rightValue: number = constraint.rightSide;
+    const argValue = args[paramName];
+
+    /* console.log(argValue + ' ---> ' + (typeof argValue));
+
+    console.log(
+      (!isNaN(constraint.rightSide)) +
+      ' && ' +
+      (constraint.rightSide !== undefined) +
+      ' && ' +
+      (typeof argValue === 'string') +
+      ' && ' +
+      !isNaN(argValue) +
+      ' && ' +
+      (isValidFunction(parseFloat(argValue), rightValue)),
+    ); */
+
+    if (
+      !isNaN(constraint.rightSide) &&
+      constraint.rightSide !== undefined &&
+      typeof argValue === 'string' &&
+      !isNaN(argValue) &&
+      isValidFunction(parseFloat(argValue), rightValue)
+    ) {
+      return true;
+    }
+  }
+
+  context.reportError(
+    new GraphQLError(
+      interparameterConstraintViolationMessage(
+        constraint,
+        fieldNode.name.value,
+      ),
+      fieldNode,
+    ),
+  );
+
+  return false;
+}
+
 /*
  * Internal helper functions
  */
-function fieldNodeToArgMap(fieldNode) {
+function fieldNodeToArgMap(fieldNode: FieldNode) {
   if (!fieldNode || !fieldNode.arguments) {
     // No arguments have been defined, return an empty map
     return {};

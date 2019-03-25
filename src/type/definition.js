@@ -883,7 +883,7 @@ export type GraphQLFieldMap<TSource, TContext> = ObjMap<
 export type GraphQLConstraint = {
   name: string,
   leftSide: string | GraphQLConstraint,
-  rightSide?: string | GraphQLConstraint,
+  rightSide?: string | number | GraphQLConstraint,
 };
 
 /**

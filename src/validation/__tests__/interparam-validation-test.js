@@ -1267,4 +1267,116 @@ describe('Validate: Interparameterconstraints', () => {
       ],
     );
   });
+
+  it('accepts a basic value constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: '>',
+          leftSide: 'age',
+          rightSide: 18,
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33){
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('recognizes a basic value constraint violation', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: '>',
+          leftSide: 'age',
+          rightSide: 18,
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 12){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          { name: '>', leftSide: 'age', rightSide: 18 },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
+
+  it('accepts a basic nested value constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'THEN',
+          leftSide: {
+            name: '>=',
+            leftSide: 'age',
+            rightSide: 18,
+          },
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 33, name: "Wim"){
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('recognizes a basic nested value constraint violation', () => {
+    expectFailsRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: 'THEN',
+          leftSide: {
+            name: '>',
+            leftSide: 'age',
+            rightSide: 18,
+          },
+          rightSide: 'name',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(age: 23){
+          iq
+        }
+      }
+      `,
+      [
+        interparamViolation(
+          'human',
+          {
+            name: 'THEN',
+            leftSide: {
+              name: '>',
+              leftSide: 'age',
+              rightSide: 18,
+            },
+            rightSide: 'name',
+          },
+          3,
+          9,
+        ),
+      ],
+    );
+  });
 });
