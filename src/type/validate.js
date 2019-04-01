@@ -389,9 +389,7 @@ function validateFields(
 
       // Add the required arguments as required to the solver
       for (const arg of field.args) {
-        console.log(arg.name + ' ==> ' + arg.type.name);
         if (isNonNullType(arg.type)) {
-          console.log('Required argument: ' + arg.name);
           solver.require(arg.name);
         }
       }
@@ -559,7 +557,11 @@ function validateValueDependentConstraint(
   }
 
   // Check right side to be a valid value
-  if (isNaN(constraint.rightSide)) {
+  // A valid value is a numeric one, or a string when the equals constraint is used
+  if (
+    isNaN(constraint.rightSide) &&
+    !(constraint.name === '=' && typeof constraint.rightSide === 'string')
+  ) {
     context.reportError(
       `The right side of  ${typeName}.${fieldName}.${constraint.name} ` +
         `must be a numeric value.`,

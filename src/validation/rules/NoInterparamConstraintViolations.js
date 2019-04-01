@@ -243,63 +243,52 @@ function executeValueConstraintValidationWithRule(
   fieldNode,
   isValidFunction, // (number, number) => boolean)
 ): boolean {
-  // TODO remove logs
-  // console.log('Constraint:');
-  // console.log(constraint);
-
   const args = fieldNodeToArgMap(fieldNode);
-
-  // console.log('Args:');
-  // console.log(args);
-
-  // console.log(leftSideValidity);
-  // console.log(rightSideValidity);
-
-  // Require a right side and
-  // check if the constraint is met using the provided function
-
-  /* console.log(
-    constraint.leftSide +
-      ' && ' +
-      (typeof constraint.leftSide === 'string') +
-      ' && ' +
-      constraint.rightSide +
-      ' && ' +
-      (typeof constraint.rightSide === 'number'),
-  ); */
 
   if (
     constraint.leftSide &&
     typeof constraint.leftSide === 'string' &&
-    constraint.rightSide &&
-    typeof constraint.rightSide === 'number'
+    constraint.rightSide
   ) {
-    const paramName: string = constraint.leftSide;
-    const rightValue: number = constraint.rightSide;
-    const argValue = args[paramName];
+    // Test the general case with a numberic value constraint
+    if (typeof constraint.rightSide === 'number') {
+      const paramName: string = constraint.leftSide;
+      const rightValue: number = constraint.rightSide;
+      const argValue = args[paramName];
 
-    /* console.log(argValue + ' ---> ' + (typeof argValue));
+      if (
+        !isNaN(constraint.rightSide) &&
+        constraint.rightSide !== undefined &&
+        typeof argValue === 'string' &&
+        !isNaN(argValue) &&
+        isValidFunction(parseFloat(argValue), rightValue)
+      ) {
+        return true;
+      }
+    }
 
-    console.log(
-      (!isNaN(constraint.rightSide)) +
-      ' && ' +
-      (constraint.rightSide !== undefined) +
-      ' && ' +
-      (typeof argValue === 'string') +
-      ' && ' +
-      !isNaN(argValue) +
-      ' && ' +
-      (isValidFunction(parseFloat(argValue), rightValue)),
-    ); */
-
-    if (
-      !isNaN(constraint.rightSide) &&
-      constraint.rightSide !== undefined &&
-      typeof argValue === 'string' &&
-      !isNaN(argValue) &&
-      isValidFunction(parseFloat(argValue), rightValue)
+    // Test a special case where the equal operator is used with a string or bool
+    else if (
+      constraint.name === '=' &&
+      typeof constraint.rightSide === 'string'
     ) {
-      return true;
+      const paramName: string = constraint.leftSide;
+      const rightValue: string = constraint.rightSide;
+      const argValue = args[paramName];
+
+      // String scenario
+      if (typeof argValue === 'string' && argValue === rightValue) {
+        return true;
+      }
+
+      // Boolean scenario
+      if (
+        typeof argValue === 'boolean' &&
+        ((argValue === true && rightValue.toLowerCase() === 'true') ||
+          (argValue === false && rightValue.toLowerCase() === 'false'))
+      ) {
+        return true;
+      }
     }
   }
 

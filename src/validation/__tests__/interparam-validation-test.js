@@ -1379,4 +1379,44 @@ describe('Validate: Interparameterconstraints', () => {
       ],
     );
   });
+
+  it('accepts a string based value constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: '=',
+          leftSide: 'name',
+          rightSide: 'Wim',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(name: "Wim"){
+          iq
+        }
+      }
+    `,
+    );
+  });
+
+  it('accepts a boolean based value constraint', () => {
+    expectPassesRuleWithSchema(
+      getInterParamTestSchema([
+        {
+          name: '=',
+          leftSide: 'hasDrivingLicense',
+          rightSide: 'true',
+        },
+      ]),
+      NoInterparamConstraintViolations,
+      `
+      {
+        human(hasDrivingLicense: true){
+          iq
+        }
+      }
+    `,
+    );
+  });
 });
