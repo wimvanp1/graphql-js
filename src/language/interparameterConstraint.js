@@ -33,3 +33,11 @@ export function isInterparameterValueConstraintOperator(symbol: string) {
     Object.values(InterparameterValueConstraintOperator).indexOf(symbol) > -1
   );
 }
+
+export function getInterparameterValueConstraintNameFromOperator(
+  symbol: string,
+) {
+  return Object.keys(InterparameterValueConstraintOperator)[
+    Object.values(InterparameterValueConstraintOperator).indexOf(symbol)
+  ];
+}

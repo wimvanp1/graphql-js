@@ -16,7 +16,7 @@ import {
   isNamedType,
   isInputType,
   isOutputType,
-  isRequiredArgument,
+  isRequiredArgument, isNonNullType,
 } from './definition';
 import type {
   GraphQLObjectType,
@@ -45,7 +45,11 @@ import type {
 } from '../language/ast';
 import { isValidNameError } from '../utilities/assertValidName';
 import { isEqualType, isTypeSubTypeOf } from '../utilities/typeComparators';
-import { isInterparameterValueConstraintOperator } from '../language/interparameterConstraint';
+import {
+  isInterparameterValueConstraintOperator,
+  getInterparameterValueConstraintNameFromOperator,
+} from '../language/interparameterConstraint';
+import Logic from 'logic-solver';
 
 /*
  * This file only validates the schema
@@ -379,14 +383,27 @@ function validateFields(
     }
 
     // Ensure the constraints are valid, if they are provided
-    if (field.constraints) {
-      for (const constraint of field.constraints) {
-        // TODO validate constraints more
-        // TODO validate that the constraint itself is valid
-        // TODO low priority: required argument w/ XOR constraint is not allowed
+    if (field.constraints && field.constraints.length) {
+      // Create a new solver to verify that the defined constraints are solvable
+      const solver = new Logic.Solver();
 
+      // Add the required arguments as required to the solver
+      for (const arg of field.args) {
+        console.log(arg.name + ' ==> ' + arg.type.name);
+        if (isNonNullType(arg.type)) {
+          console.log('Required argument: ' + arg.name);
+          solver.require(arg.name);
+        }
+      }
+
+      for (const constraint of field.constraints) {
         // Validate that the argument exists (if the constraint is a name)
         let toBeChecked = [];
+
+        // Add this constraint to the solver
+        // So that we can use it in the end to determine the overall satisfiability
+        solver.require(constraintToLogic(constraint));
+
         if (constraint.name === 'NOT') {
           // A not constraint has only a left side
           toBeChecked = [constraint.leftSide];
@@ -399,6 +416,7 @@ function validateFields(
             field.name,
           );
           // End checking, because further nesting is not allowed
+          // The solver does not need to account for this.
           continue;
         } else {
           toBeChecked = [constraint.leftSide, constraint.rightSide];
@@ -450,6 +468,16 @@ function validateFields(
           }
         }
       }
+
+      // Check if the comination of all constraints is solvable
+      if (solver.solve() === null) {
+        // No solution is found for the given constraints
+        context.reportError(
+          `The constraints defined on ` +
+            `${type.name}.${field.name} are not satisfiable.`,
+          field.astNode,
+        );
+      }
     }
   }
 }
@@ -460,6 +488,55 @@ function isNestedConstraint(side: GraphQLConstraintConfig): boolean {
     side.hasOwnProperty('leftSide') &&
     side.hasOwnProperty('rightSide')
   );
+}
+
+function constraintToLogic(constraint?: GraphQLConstraintConfig | string) {
+  // Keep type checker happy
+  if (!constraint) {
+    return '';
+  }
+
+  if (typeof constraint === 'string') {
+    return constraint;
+  }
+
+  switch (constraint.name) {
+    case 'AND':
+      return Logic.and(
+        constraintToLogic(constraint.leftSide),
+        constraintToLogic(constraint.rightSide),
+      );
+    case 'NOT':
+      return Logic.not(constraintToLogic(constraint.leftSide));
+    case 'OR':
+      return Logic.or(
+        constraintToLogic(constraint.leftSide),
+        constraintToLogic(constraint.rightSide),
+      );
+    case 'THEN':
+      return Logic.implies(
+        constraintToLogic(constraint.leftSide),
+        constraintToLogic(constraint.rightSide),
+      );
+    case 'WITH':
+      return Logic.equiv(
+        constraintToLogic(constraint.leftSide),
+        constraintToLogic(constraint.rightSide),
+      );
+    case 'XOR':
+      return Logic.xor(
+        constraintToLogic(constraint.leftSide),
+        constraintToLogic(constraint.rightSide),
+      );
+    default:
+      // The value of other constraints (eg value constraint) is not important.
+      // Therefore, we 'create' a new entity based on the contents of the constraint
+      return (
+        getInterparameterValueConstraintNameFromOperator(constraint.name) +
+        (typeof constraint.leftSide === 'string' ? constraint.leftSide : '') +
+        (typeof constraint.rightSide === 'string' ? constraint.rightSide : '')
+      );
+  }
 }
 
 function validateValueDependentConstraint(

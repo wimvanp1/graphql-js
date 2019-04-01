@@ -239,6 +239,39 @@ describe('Type System', () => {
     `);
     expect(validateSchema(schema)).to.deep.equal([]);
   });
-
   // TODO add incorrectly nested value dependent constraints
+
+  it('rejects unsatisfiable constraint definitions', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID, postal_code: Int, phone: String){
+          AND(postal_code, phone)
+          AND(id, postal_code)
+          XOR(id, phone)
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([
+      {
+        message: 'The constraints defined on Query.field are not satisfiable.',
+        locations: [{ line: 3, column: 9 }],
+      },
+    ]);
+  });
+
+  it('rejects unsatisfiable constraint definitions with required arguments', () => {
+    const schema = buildSchema(`
+      type Query {
+        field(id: ID!, postal_code: Int!){
+          XOR(id, postal_code) 
+        }: String
+      }
+    `);
+    expect(validateSchema(schema)).to.deep.equal([
+      {
+        message: 'The constraints defined on Query.field are not satisfiable.',
+        locations: [{ line: 3, column: 9 }],
+      },
+    ]);
+  });
 });
