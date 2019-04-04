@@ -149,7 +149,7 @@ export function getHero(episode: number): Character {
 /**
  * Allows us to query for the human with the given id.
  */
-export function getHuman(id: string): Human {
+export function getHuman(id: string, _name: string): Human {
   return humanData[id];
 }
 

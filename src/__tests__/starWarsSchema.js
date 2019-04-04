@@ -274,10 +274,21 @@ const queryType = new GraphQLObjectType({
       args: {
         id: {
           description: 'id of the human',
-          type: GraphQLNonNull(GraphQLString),
+          type: GraphQLString, // GraphQLNonNull
+        },
+        name: {
+          description: 'the name of the human (unused)',
+          type: GraphQLString,
         },
       },
-      resolve: (root, { id }) => getHuman(id),
+      constraints: [
+        {
+          name: 'XOR',
+          leftSide: 'id',
+          rightSide: 'name',
+        },
+      ],
+      resolve: (root, { id, name }) => getHuman(id, name),
     },
     droid: {
       type: droidType,

@@ -11,6 +11,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 import { StarWarsSchema } from './starWarsSchema';
 import { graphql } from '../graphql';
+import { interparameterConstraintViolationMessage } from '../validation/rules/NoInterparamConstraintViolations';
 
 describe('Star Wars Query Tests', () => {
   describe('Basic Queries', () => {
@@ -240,6 +241,38 @@ describe('Star Wars Query Tests', () => {
           human: null,
         },
       });
+    });
+  });
+
+  it('Denies us to create a generic query, without providing the ID, as a XOR violation', async () => {
+    const query = `
+        query FetchSomeIDQuery($someId: String) {
+          human(id: $someId) {
+            name
+          }
+        }
+      `;
+    const params = {};
+    const result = await graphql(StarWarsSchema, query, null, null, params);
+    expect(result).to.deep.equal({
+      errors: [
+        {
+          message: interparameterConstraintViolationMessage(
+            {
+              name: 'XOR',
+              leftSide: 'id',
+              rightSide: 'name',
+            },
+            'human',
+          ),
+          locations: [
+            {
+              line: 3,
+              column: 11,
+            },
+          ],
+        },
+      ],
     });
   });
 

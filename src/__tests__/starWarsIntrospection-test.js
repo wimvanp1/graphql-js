@@ -370,12 +370,19 @@ describe('Star Wars Introspection Tests', () => {
                     name: 'id',
                     description: 'id of the human',
                     type: {
-                      kind: 'NON_NULL',
-                      name: null,
-                      ofType: {
-                        kind: 'SCALAR',
-                        name: 'String',
-                      },
+                      kind: 'SCALAR',
+                      name: 'String',
+                      ofType: null,
+                    },
+                    defaultValue: null,
+                  },
+                  {
+                    name: 'name',
+                    description: 'the name of the human (unused)',
+                    type: {
+                      kind: 'SCALAR',
+                      name: 'String',
+                      ofType: null,
                     },
                     defaultValue: null,
                   },
