@@ -17,6 +17,7 @@ import type { GraphQLFieldResolver } from './type/definition';
 import type { GraphQLSchema } from './type/schema';
 import type { ExecutionResult } from './execution/execute';
 import type { MaybePromise } from './jsutils/MaybePromise';
+import type { DocumentNode } from './language';
 
 /**
  * This is the primary entry point function for fulfilling GraphQL operations
@@ -168,7 +169,7 @@ export function graphqlSync(
 }
 
 function graphqlImpl(
-  schema,
+  schema: GraphQLSchema,
   source, // Query
   rootValue, // Resolvers?
   contextValue, // Additional properties used for the resolvers
@@ -183,15 +184,30 @@ function graphqlImpl(
   }
 
   // Parse
-  let document;
+  let document: DocumentNode;
   try {
     document = parse(source);
   } catch (syntaxError) {
     return { errors: [syntaxError] };
   }
 
+  // replace the vars in the query
+  // The document is parsed again to retrieve a deep copy of the original
+  // TODO remove
+  /* const documentToBeValidated = insertVariablesIntoDocument(
+    schema,
+    parse(source),
+    variableValues,
+  ); */
+
   // Validate
-  const validationErrors = validate(schema, document);
+  const validationErrors = validate(
+    schema,
+    document,
+    undefined,
+    undefined,
+    variableValues,
+  );
   if (validationErrors.length > 0) {
     return { errors: validationErrors };
   }

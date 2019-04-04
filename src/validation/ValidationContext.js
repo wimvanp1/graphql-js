@@ -94,15 +94,18 @@ export class ValidationContext extends ASTValidationContext {
     OperationDefinitionNode,
     $ReadOnlyArray<VariableUsage>,
   >;
+  _variableValues: {};
 
   constructor(
     schema: GraphQLSchema,
     ast: DocumentNode,
     typeInfo: TypeInfo,
+    variableValues?: { string: mixed },
   ): void {
     super(ast);
     this._schema = schema;
     this._typeInfo = typeInfo;
+    this._variableValues = variableValues ? variableValues : {};
     this._fragmentSpreads = new Map();
     this._recursivelyReferencedFragments = new Map();
     this._variableUsages = new Map();
@@ -220,6 +223,10 @@ export class ValidationContext extends ASTValidationContext {
       this._recursiveVariableUsages.set(operation, usages);
     }
     return usages;
+  }
+
+  getVariableValues() {
+    return this._variableValues;
   }
 
   getType(): ?GraphQLOutputType {

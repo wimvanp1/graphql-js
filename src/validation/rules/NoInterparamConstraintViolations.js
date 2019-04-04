@@ -13,6 +13,7 @@ import type { GraphQLConstraint } from '../../type';
 import keyValMap from '../../jsutils/keyValMap';
 import { GraphQLError } from '../../error';
 import type { FieldNode } from '../../language';
+import { insertVariablesIntoField } from '../../utilities/InsertVariablesIntoField';
 
 export function interparameterConstraintViolationMessage(
   constraint: GraphQLConstraint,
@@ -44,9 +45,33 @@ export function NoInterparamConstraintViolations(
         return;
       }
 
+      // Insert the variables into this field node
+      const fieldNodeWithVariableValues = insertVariablesIntoField(
+        fieldDef,
+        fieldNode,
+        context.getVariableValues(),
+      );
+
       // Go over the specified constraints
-      for (const constraint of fieldDef.constraints) {
-        if (!validateConstraint(context, constraint, fieldNode)) {
+      for (
+        let i = 0;
+        fieldDef.constraints && i < fieldDef.constraints.length;
+        i++
+      ) {
+        if (typeof fieldDef.constraints !== 'object') {
+          return;
+        }
+
+        const constraint = fieldDef.constraints[i];
+        if (
+          !validateConstraint(
+            context,
+            constraint,
+            fieldNodeWithVariableValues,
+            fieldNode,
+          )
+        ) {
+          // TODO refactor
           // Report errors at the top level of the constraint
           // This way, we will show the complete constraint in the error message
         }
@@ -61,7 +86,8 @@ export function NoInterparamConstraintViolations(
 function validateConstraint(
   context: ValidationContext,
   constraint: GraphQLConstraint,
-  fieldNode,
+  fieldNode: FieldNode,
+  originalFieldNode: FieldNode,
 ): boolean {
   switch (constraint.name) {
     case 'XOR':
@@ -69,6 +95,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
           // XOR is valid if the left or right side is given, but not when both are given
           (leftSideValidity || rightSideValidity) &&
@@ -79,6 +106,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
           // OR is valid if the left or right side is given, or both
           leftSideValidity || rightSideValidity,
@@ -88,6 +116,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
           // THEN is invalid if left is given and right not
           // So we take the not of this test to check when a THEN is valid.
@@ -98,6 +127,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
           // WITH is valid when left and right are either both valid or both invalid
           (leftSideValidity && rightSideValidity) ||
@@ -108,6 +138,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         (leftSideValidity: boolean, rightSideValidity: boolean): boolean =>
           // AND is valid when left and right are both valid
           leftSideValidity && rightSideValidity,
@@ -117,6 +148,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         // The rightSideValidity would be true for a not constraint
         (leftSideValidity: boolean, _): boolean => !leftSideValidity,
       );
@@ -125,6 +157,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         (fieldValue: number, value: number): boolean => fieldValue > value,
       );
     case '>=':
@@ -132,6 +165,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         (fieldValue: number, value: number): boolean => fieldValue >= value,
       );
     case '<':
@@ -139,6 +173,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         (fieldValue: number, value: number): boolean => fieldValue < value,
       );
     case '<=':
@@ -146,6 +181,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         (fieldValue: number, value: number): boolean => fieldValue <= value,
       );
     case '=':
@@ -153,6 +189,7 @@ function validateConstraint(
         context,
         constraint,
         fieldNode,
+        originalFieldNode,
         (fieldValue: number, value: number): boolean => fieldValue === value,
       );
     default:
@@ -162,9 +199,9 @@ function validateConstraint(
         new GraphQLError(
           interparameterConstraintViolationMessage(
             constraint,
-            fieldNode.name.value,
+            originalFieldNode.name.value,
           ),
-          fieldNode,
+          originalFieldNode,
         ),
       );
       return false;
@@ -175,6 +212,7 @@ function executeConstraintValidationWithRule(
   context,
   constraint: GraphQLConstraint,
   fieldNode,
+  originalFieldNode: FieldNode,
   isValidFunction, // (boolean, boolean) => boolean)
 ): boolean {
   // TODO remove logs
@@ -188,7 +226,12 @@ function executeConstraintValidationWithRule(
 
   const leftSideValidity =
     typeof constraint.leftSide === 'object'
-      ? validateConstraint(context, constraint.leftSide, fieldNode)
+      ? validateConstraint(
+          context,
+          constraint.leftSide,
+          fieldNode,
+          originalFieldNode,
+        )
       : args[constraint.leftSide] !== undefined;
 
   let rightSideValidity = true;
@@ -203,7 +246,12 @@ function executeConstraintValidationWithRule(
   ) {
     rightSideValidity =
       typeof constraint.rightSide === 'object'
-        ? validateConstraint(context, constraint.rightSide, fieldNode)
+        ? validateConstraint(
+            context,
+            constraint.rightSide,
+            fieldNode,
+            originalFieldNode,
+          )
         : args[constraint.rightSide] !== undefined;
   }
 
@@ -220,9 +268,9 @@ function executeConstraintValidationWithRule(
     new GraphQLError(
       interparameterConstraintViolationMessage(
         constraint,
-        fieldNode.name.value,
+        originalFieldNode.name.value,
       ),
-      fieldNode,
+      originalFieldNode,
     ),
   );
 
@@ -240,7 +288,8 @@ function executeConstraintValidationWithRule(
 function executeValueConstraintValidationWithRule(
   context,
   constraint: GraphQLConstraint,
-  fieldNode,
+  fieldNode: FieldNode,
+  originalFieldNode: FieldNode,
   isValidFunction, // (number, number) => boolean)
 ): boolean {
   const args = fieldNodeToArgMap(fieldNode);
@@ -296,9 +345,9 @@ function executeValueConstraintValidationWithRule(
     new GraphQLError(
       interparameterConstraintViolationMessage(
         constraint,
-        fieldNode.name.value,
+        originalFieldNode.name.value,
       ),
-      fieldNode,
+      originalFieldNode,
     ),
   );
 

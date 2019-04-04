@@ -39,12 +39,18 @@ export function validate(
   documentAST: DocumentNode,
   rules?: $ReadOnlyArray<ValidationRule> = specifiedRules,
   typeInfo?: TypeInfo = new TypeInfo(schema),
+  variableValues?: { string: mixed },
 ): $ReadOnlyArray<GraphQLError> {
   invariant(documentAST, 'Must provide document');
   // If the schema used for validation is invalid, throw an error.
   assertValidSchema(schema);
 
-  const context = new ValidationContext(schema, documentAST, typeInfo);
+  const context = new ValidationContext(
+    schema,
+    documentAST,
+    typeInfo,
+    variableValues,
+  );
   // This uses a specialized visitor which runs multiple visitors in parallel,
   // while maintaining the visitor skip and break API.
   const visitor = visitInParallel(rules.map(rule => rule(context)));
