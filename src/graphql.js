@@ -191,15 +191,6 @@ function graphqlImpl(
     return { errors: [syntaxError] };
   }
 
-  // replace the vars in the query
-  // The document is parsed again to retrieve a deep copy of the original
-  // TODO remove
-  /* const documentToBeValidated = insertVariablesIntoDocument(
-    schema,
-    parse(source),
-    variableValues,
-  ); */
-
   // Validate
   const validationErrors = validate(
     schema,

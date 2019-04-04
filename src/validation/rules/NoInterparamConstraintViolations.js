@@ -62,19 +62,13 @@ export function NoInterparamConstraintViolations(
           return;
         }
 
-        const constraint = fieldDef.constraints[i];
-        if (
-          !validateConstraint(
-            context,
-            constraint,
-            fieldNodeWithVariableValues,
-            fieldNode,
-          )
-        ) {
-          // TODO refactor
-          // Report errors at the top level of the constraint
-          // This way, we will show the complete constraint in the error message
-        }
+        // Now validate the constraint
+        validateConstraint(
+          context,
+          fieldDef.constraints[i],
+          fieldNodeWithVariableValues,
+          fieldNode,
+        );
       }
     },
   };
@@ -215,14 +209,7 @@ function executeConstraintValidationWithRule(
   originalFieldNode: FieldNode,
   isValidFunction, // (boolean, boolean) => boolean)
 ): boolean {
-  // TODO remove logs
-  // console.log('Constraint:');
-  // console.log(constraint);
-
   const args = fieldNodeToArgMap(fieldNode);
-
-  // console.log('Args:');
-  // console.log(args);
 
   const leftSideValidity =
     typeof constraint.leftSide === 'object'
@@ -254,9 +241,6 @@ function executeConstraintValidationWithRule(
           )
         : args[constraint.rightSide] !== undefined;
   }
-
-  // console.log(leftSideValidity);
-  // console.log(rightSideValidity);
 
   // Check if this combination of valid sides is also valid as a whole for this constraint
   // Note that in case the constraint does not have a right side, true will be given!
