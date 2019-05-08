@@ -425,6 +425,7 @@ function validateFields(
             } is not defined as an inter-parameter constraint operator.`,
             constraint.astNode,
           );
+          continue;
         } else {
           toBeChecked = [constraint.leftSide, constraint.rightSide];
         }
