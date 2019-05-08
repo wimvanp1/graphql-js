@@ -16,7 +16,8 @@ import {
   isNamedType,
   isInputType,
   isOutputType,
-  isRequiredArgument, isNonNullType,
+  isRequiredArgument,
+  isNonNullType,
 } from './definition';
 import type {
   GraphQLObjectType,
@@ -47,7 +48,7 @@ import { isValidNameError } from '../utilities/assertValidName';
 import { isEqualType, isTypeSubTypeOf } from '../utilities/typeComparators';
 import {
   isInterparameterValueConstraintOperator,
-  getInterparameterValueConstraintNameFromOperator,
+  getInterparameterValueConstraintNameFromOperator, isInterparameterConstraintOperator,
 } from '../language/interparameterConstraint';
 import Logic from 'logic-solver';
 
@@ -416,6 +417,14 @@ function validateFields(
           // End checking, because further nesting is not allowed
           // The solver does not need to account for this.
           continue;
+        } else if (!isInterparameterConstraintOperator(constraint.name)) {
+          // Assure that the operator is a valid interparameter constraint operator
+          context.reportError(
+            `${
+              constraint.name
+            } is not defined as an inter-parameter constraint operator.`,
+            constraint.astNode,
+          );
         } else {
           toBeChecked = [constraint.leftSide, constraint.rightSide];
         }
